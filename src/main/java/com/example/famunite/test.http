@@ -1,16 +1,19 @@
-//    POST http://localhost:8080/api/users
-// Content-Type: application/json
+    POST http://localhost:8080/api/users
+ Content-Type: application/json
 
-// {
-//  "id": "12345",
-//  "name": "John Doe",
-//  "email": "john.doeexample.com",
-//  "contact_info": "123-456-7890",
-//  "role": ["USER", "ADMIN"],
-//  "status": "ACTIVE"
-//  }
+ {
+  "id": "12345",
+  "name": "Jaen Doe",
+  "email": "john.doeexample.com",
+  "contact_info": "123-456-7890",
+  "role": ["USER", "ADMIN"],
+  "status": "ACTIVE"
+  }
 
-GET http://localhost:8080/api/users/nMeRBJeyKv2G4ouHaBZH
-Content-Type: application/json
+//GET http://localhost:8080/api/users/nMeRBJeyKv2G4ouHaBZH
+//Content-Type: application/json
+
+
+
 
 

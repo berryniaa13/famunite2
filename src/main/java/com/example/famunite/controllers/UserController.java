@@ -25,7 +25,18 @@ public class UserController {
         return ResponseEntity.ok(userService.getUser(id));
     }
 
-    @DeleteMapping("/{id}")
+    // UPDATE endpoint
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateUser(@PathVariable String id, @RequestBody User updatedUser) {
+        try {
+            String result = userService.updateUser(id, updatedUser);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(500).body("Failed to update user: " + e.getMessage());
+        }
+    }
+
+@DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable("id") String id){
         return ResponseEntity.ok(userService.deleteUser(id));
     }

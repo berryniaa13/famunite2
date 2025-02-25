@@ -43,6 +43,28 @@ public class UserService {
         }
     }
 
+    // UPDATE
+    public String updateUser(String id, User updatedUser) {
+        try {
+            // Reference the document to update
+            DocumentReference userDoc = firestore.collection("User").document(id);
+
+            // Check if the document exists
+            ApiFuture<DocumentSnapshot> future = userDoc.get();
+            DocumentSnapshot document = future.get();
+            if (!document.exists()) {
+                return "User with ID " + id + " does not exist.";
+            }
+
+            // Update the document with the new user data
+            ApiFuture<WriteResult> writeResult = userDoc.set(updatedUser);
+            return "User successfully updated at: " + writeResult.get().getUpdateTime();
+        } catch (InterruptedException | ExecutionException e) {
+            log.error(e.getMessage(), e);
+            throw new RuntimeException("Failed to update user: " + e.getMessage());
+        }
+    }
+
 
     //DELETE
     public String deleteUser(String id) {
