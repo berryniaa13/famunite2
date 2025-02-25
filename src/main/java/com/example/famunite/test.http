@@ -5,7 +5,7 @@
   "id": "12345",
   "name": "Jaen Doe",
   "email": "john.doeexample.com",
-  "contact_info": "123-456-7890",
+  "contact_info": "123-459-7890",
   "role": ["USER", "ADMIN"],
   "status": "ACTIVE"
   }

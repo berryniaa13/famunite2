@@ -13,5 +13,4 @@ public class FamuniteApplication {
     }
 
 }
-// GOOGLE_CLOUD_PROJECT=famunite-f125d;
-// GOOGLE_APPLICATION_CREDENTIALS=C:\Users\berry\Downloads\serviceAccount.json
+// GOOGLE_CLOUD_PROJECT=famunite-f125d;GOOGLE_APPLICATION_CREDENTIALS=C:\Users\berry\Downloads\serviceAccount.json
