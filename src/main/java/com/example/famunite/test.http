@@ -10,8 +10,8 @@
   "status": "ACTIVE"
   }
 
-//GET http://localhost:8080/api/users/nMeRBJeyKv2G4ouHaBZH
-//Content-Type: application/json
+GET http://localhost:8080/api/users/nMeRBJeyKv2G4ouHaBZH
+Content-Type: application/json
 
 
 

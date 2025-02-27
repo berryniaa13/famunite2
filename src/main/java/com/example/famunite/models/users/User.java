@@ -13,9 +13,12 @@ public class User {
     private String id;
     private String name;
     private String email;
+    private String password;
     private String contact_info;
     private List<String> role;
     private String status;
+    @ServerTimestamp
+    private Timestamp created_at;
     @ServerTimestamp
     private Timestamp updated_at;
 }
