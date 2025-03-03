@@ -2,14 +2,13 @@ package com.example.famunite.services;
 
 import com.example.famunite.models.users.User;
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.WriteResult;
+import com.google.cloud.firestore.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 // Service classes actually interacts with Firestore to perform operation
 
@@ -75,4 +74,48 @@ public class UserService {
             throw new RuntimeException(e);
         }
     }
+
+//    public List<User> getAllUsers() {
+//        CollectionReference userCollection = firestore.collection("User");
+//        ApiFuture<QuerySnapshot> future = userCollection.get();
+//        List<User> userList = new ArrayList<>();
+//        for (DocumentSnapshot document : future.get().getDocuments()) {
+//
+//            User user = documentSnapshotToUser(document);
+//            if (user != null){
+//                userList.add(user);
+//            }
+//        }
+//        return userList;
+//        }
+    private User documentSnapshotToUser(DocumentSnapshot document) {
+        return document.toObject(User.class); // Converts Firestore document to User object
+    }
+
+    public List<User> getAllUsers() {
+    List<User> userList = new ArrayList<>();
+
+    try {
+        CollectionReference userCollection = firestore.collection("User");
+        ApiFuture<QuerySnapshot> future = userCollection.get();
+        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+        for (DocumentSnapshot document : documents) {
+            User user = documentSnapshotToUser(document);
+            if (user != null) {
+                userList.add(user);
+            }
+        }
+    } catch (InterruptedException | ExecutionException e) {
+        log.error("Error retrieving users: ", e);
+        throw new RuntimeException("Failed to fetch users", e);
+    }
+
+    return userList;
+}
+
+
+
+
+
 }
