@@ -75,19 +75,6 @@ public class UserService {
         }
     }
 
-//    public List<User> getAllUsers() {
-//        CollectionReference userCollection = firestore.collection("User");
-//        ApiFuture<QuerySnapshot> future = userCollection.get();
-//        List<User> userList = new ArrayList<>();
-//        for (DocumentSnapshot document : future.get().getDocuments()) {
-//
-//            User user = documentSnapshotToUser(document);
-//            if (user != null){
-//                userList.add(user);
-//            }
-//        }
-//        return userList;
-//        }
     private User documentSnapshotToUser(DocumentSnapshot document) {
         return document.toObject(User.class); // Converts Firestore document to User object
     }
