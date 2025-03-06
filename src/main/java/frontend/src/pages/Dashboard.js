@@ -1,51 +1,67 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, getDocs } from 'firebase/firestore'; // Firestore imports
+import { collection, getDocs } from 'firebase/firestore';
 import { firestore } from '../context/firebaseConfig';
 
 function DashboardPage() {
     const navigate = useNavigate();
-    const [role, setRole] = useState(null);
+    const [role, setRole] = useState(null); // Stores user role (admin, user, etc.)
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [error, setError] = useState(null); // For permission errors
 
-    // Fetch user role from localStorage
     useEffect(() => {
         const storedRole = localStorage.getItem('userRole');
 
         if (!storedRole) {
-            navigate('/login'); // Redirect to login if no role is found
+            navigate('/login');
         } else {
             setRole(storedRole);
             if (storedRole === 'Admin') {
-                fetchUsers(); // Fetch users if the logged-in user is an admin
+                fetchUsers();
             }
         }
     }, [navigate]);
 
-    // Fetch users from Firestore
     const fetchUsers = async () => {
         try {
             const usersRef = collection(firestore, 'User');
             const snapshot = await getDocs(usersRef);
-            const usersList = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            const usersList = snapshot.docs
+                .map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }))
+                .filter(user => user.role !== 'Admin'); // Exclude admins
 
             setUsers(usersList);
         } catch (error) {
             console.error("Error fetching users from Firestore:", error);
+            setError("You do not have permission to access this data.");
         } finally {
             setLoading(false);
         }
     };
 
-    // Logout function
     const handleLogout = () => {
         localStorage.removeItem('userRole');
         navigate('/login');
     };
+
+    const handleSearch = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const handleViewDetails = (user) => {
+        setSelectedUser(user);
+    };
+
+    const filteredUsers = users.filter(user =>
+        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     if (loading) {
         return <div>Loading...</div>;
@@ -55,71 +71,63 @@ function DashboardPage() {
         <div style={styles.container}>
             <h1>Admin Dashboard</h1>
 
-            {role === 'Admin' && (
+            {error && <div style={styles.error}>{error}</div>}
+
+            {role === 'Admin' ? (
                 <>
-                    <h2>User Management</h2>
-                    <button onClick={fetchUsers} style={styles.button}>Refresh User List</button>
-                    <table style={styles.table}>
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {users.map((user) => (
-                            <tr key={user.id}>
-                                <td>{user.id}</td>
-                                <td>{user.name}</td>
-                                <td>{user.email}</td>
-                            </tr>
+                    <input
+                        type="text"
+                        placeholder="Search users..."
+                        value={searchTerm}
+                        onChange={handleSearch}
+                        style={styles.searchBar}
+                    />
+
+                    <ul style={styles.list}>
+                        {filteredUsers.map((user) => (
+                            <li key={user.id} style={styles.listItem}>
+                                <h3>{user.name}</h3>
+                                <button onClick={() => handleViewDetails(user)} style={styles.button}>
+                                    View Details
+                                </button>
+                            </li>
                         ))}
-                        </tbody>
-                    </table>
+                    </ul>
                 </>
+            ) : (
+                <p>You do not have access to the admin dashboard.</p>
             )}
 
-            <button onClick={handleLogout} style={styles.button}>Logout</button>
+            {selectedUser && (
+                <div style={styles.detailsContainer}>
+                    <h3>User Details</h3>
+                    <p><strong>ID:</strong> {selectedUser.id}</p>
+                    <p><strong>Name:</strong> {selectedUser.name || "No name provided"}</p>
+                    <p><strong>Email:</strong> {selectedUser.email || "No email available"}</p>
+                    <p><strong>Role:</strong> {selectedUser.role || "N/A"}</p>
+                </div>
+            )}
+
+            <button onClick={handleLogout} style={styles.logoutButton}>Logout</button>
         </div>
     );
 }
 
-// Inline CSS styles
+// Inline styles for layout
 const styles = {
-    container: {
-        margin: '0 auto',
-        width: '600px',
-        textAlign: 'center',
-        border: '1px solid #ddd',
-        padding: '20px',
-        borderRadius: '5px',
-        marginTop: '50px',
+    container: { textAlign: "center", padding: "20px" },
+    searchBar: { padding: "8px", width: "80%", margin: "10px auto", display: "block" },
+    list: { listStyle: "none", padding: "0" },
+    listItem: {
+        padding: "10px", border: "1px solid #ddd", margin: "10px",
+        borderRadius: "5px", backgroundColor: "#f9f9f9", display: "flex",
+        justifyContent: "space-between", alignItems: "center"
     },
-    button: {
-        width: '100%',
-        height: '40px',
-        backgroundColor: '#007bff',
-        color: 'white',
-        border: 'none',
-        borderRadius: '5px',
-        cursor: 'pointer',
-        marginBottom: '10px',
-    },
-    table: {
-        width: '100%',
-        marginTop: '20px',
-        borderCollapse: 'collapse',
-    },
-    tableCell: {
-        padding: '10px',
-        border: '1px solid #ddd',
-        color: 'black',
-    },
-    tableHeader: {
-        backgroundColor: '#f2f2f2',
-        color: 'black',
-    },
+    button: { padding: "5px 10px", backgroundColor: "#28a745", color: "white", border: "none", cursor: "pointer", borderRadius: "5px" },
+    detailsContainer: { marginTop: "20px", padding: "15px", border: "1px solid #ddd", borderRadius: "5px", backgroundColor: "#e9ecef" },
+    logoutButton: { padding: "10px", backgroundColor: "#007bff", color: "white", border: "none", cursor: "pointer", marginTop: "10px" },
+    error: { color: "red", margin: "10px 0", fontSize: "14px" }, // Error message style
 };
 
 export default DashboardPage;
+
