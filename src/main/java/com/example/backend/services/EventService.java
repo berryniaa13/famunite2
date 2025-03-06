@@ -1,6 +1,4 @@
 package com.example.backend.services;
-
-import com.example.backend.models.User;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import lombok.AllArgsConstructor;
@@ -22,13 +20,19 @@ public class EventService {
     // CREATE
     public String createEvent(Event event) throws ExecutionException, InterruptedException {
         try {
-            ApiFuture<DocumentReference> eventRef = firestore.collection("Event").add(event);
-            return "Document saved: eventId " + eventRef.get().getId();
-        } catch (InterruptedException | ExecutionException e) {
+            DocumentReference eventRef = firestore.collection("Event").document();
+            event.setId(eventRef.getId());
+
+            ApiFuture<WriteResult> future = eventRef.set(event); // Future for Firestore write
+            future.get(); // Ensures we wait for completion and capture any exceptions
+
+            return "Event created successfully with ID: " + eventRef.getId();
+        } catch (ExecutionException | InterruptedException e) {
             log.error("Error creating event: {}", e.getMessage());
             throw new RuntimeException("Failed to create event", e);
         }
     }
+
 
     // READ
     public Event getEvent(String id) {
@@ -54,7 +58,15 @@ public class EventService {
                 return "Event with ID " + id + " does not exist.";
             }
 
-            ApiFuture<WriteResult> writeResult = eventDoc.set(updatedEvent);
+            ApiFuture<WriteResult> writeResult = eventDoc.update(
+                    "title", updatedEvent.getTitle(),
+                    "category", updatedEvent.getCategory(),
+                    "description", updatedEvent.getDescription(),
+                    "location", updatedEvent.getLocation(),
+                    "date", updatedEvent.getDate_time()
+            );
+
+
             return "Event successfully updated at: " + writeResult.get().getUpdateTime();
         } catch (InterruptedException | ExecutionException e) {
             log.error("Error updating event with ID {}: {}", id, e.getMessage());

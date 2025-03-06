@@ -4,6 +4,7 @@ import DashboardPage from './pages/Dashboard';
 import LoginPage from './pages/LoginPage';
 import StudentDashboard from "./pages/StudentDashboard";
 import EventModeratorPage from "./pages/EventModeratorPage";
+import OrganizationLiasonPage from "./pages/OrganizationLiasonPage";
 
 function App() {
     return (
@@ -13,6 +14,7 @@ function App() {
                 <Route path="/admin-dashboard" element={<DashboardPage />} />  {/* Admin Dashboard */}
                 <Route path="/student-dashboard" element={<StudentDashboard />} />   {/* User Dashboard */}
                 <Route path="/event-moderator-dashboard" element={<EventModeratorPage />} />   {/* EventModerator Dashboard */}
+                <Route path="/organization-liason-dashboard" element={<OrganizationLiasonPage />} />   {/* OrganizationLiason Dashboard */}
             </Routes>
         </Router>
     );

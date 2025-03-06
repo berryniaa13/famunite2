@@ -34,7 +34,7 @@ function StudentDashboard() {
         setSearchTerm(e.target.value);
         setSelectedEvent(null); // Reset selected event when searching
         const filtered = events.filter(event =>
-            event.name.toLowerCase().includes(e.target.value.toLowerCase())
+            event.title && event.title.toLowerCase().includes(e.target.value.toLowerCase())
         );
         setFilteredEvents(filtered);
     };
@@ -61,7 +61,7 @@ function StudentDashboard() {
             <ul style={styles.list}>
                 {filteredEvents.map((event) => (
                     <li key={event.id} style={styles.listItem}>
-                        <h3>{event.title}</h3>
+                        <h3>{event.title || "Untitled Event"}</h3>
                         <button onClick={() => handleViewDetails(event)} style={styles.button}>
                             View Details
                         </button>
