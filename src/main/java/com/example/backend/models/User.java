@@ -1,4 +1,4 @@
-package com.example.famunite.models.users;
+package com.example.backend.models;
 
 import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.annotation.DocumentId;

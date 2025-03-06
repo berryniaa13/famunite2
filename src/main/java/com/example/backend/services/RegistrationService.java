@@ -1,8 +1,9 @@
-package com.example.famunite.services;
+package com.example.backend.services;
 
-import com.example.famunite.models.users.User;
+import com.example.backend.models.User;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
+import jakarta.servlet.Registration;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,12 +17,12 @@ import java.util.concurrent.ExecutionException;
 @AllArgsConstructor
 // annotation that allows to log errors
 @Slf4j
-public class UserService {
+public class RegistrationService {
 
     private Firestore firestore;
 
     // CREATE
-    public String createUser(User user) throws ExecutionException, InterruptedException {
+    public String createUser(Registration user) throws ExecutionException, InterruptedException {
         try {
             ApiFuture<DocumentReference> users = firestore.collection("User").add(user);
             return "Document saved: userId id " + users.get().getId();
@@ -80,29 +81,30 @@ public class UserService {
     }
 
     public List<User> getAllUsers() {
-    List<User> userList = new ArrayList<>();
+        List<User> userList = new ArrayList<>();
 
-    try {
-        CollectionReference userCollection = firestore.collection("User");
-        ApiFuture<QuerySnapshot> future = userCollection.get();
-        List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+        try {
+            CollectionReference userCollection = firestore.collection("User");
+            ApiFuture<QuerySnapshot> future = userCollection.get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
-        for (DocumentSnapshot document : documents) {
-            User user = documentSnapshotToUser(document);
-            if (user != null) {
-                userList.add(user);
+            for (DocumentSnapshot document : documents) {
+                User user = documentSnapshotToUser(document);
+                if (user != null) {
+                    userList.add(user);
+                }
             }
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Error retrieving users: ", e);
+            throw new RuntimeException("Failed to fetch users", e);
         }
-    } catch (InterruptedException | ExecutionException e) {
-        log.error("Error retrieving users: ", e);
-        throw new RuntimeException("Failed to fetch users", e);
+
+        return userList;
     }
 
-    return userList;
-}
-
 
 
 
 
 }
+
