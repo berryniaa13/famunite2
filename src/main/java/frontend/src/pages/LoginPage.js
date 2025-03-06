@@ -26,7 +26,7 @@ function LoginPage() {
             if (userRole === 'Admin') {
                 navigate('/admin-dashboard'); // Admin dashboard route
             }
-            else if(userRole === 'Organization Liason')
+            else if(userRole === 'Organization Liaison')
             {
                 navigate('/organization-liason-dashboard')
             }
