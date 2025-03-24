@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../context/firebaseConfig'; // Import your Firebase auth instance
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { setDoc, doc, getDoc } from 'firebase/firestore'; // ✅ Added getDoc
+import { auth, firestore } from '../context/firebaseConfig';
 import authService from '../services/authService';
 
 function LoginPage() {
@@ -16,38 +17,58 @@ function LoginPage() {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            console.log("Querying with email:", email); // Debugging line
+            console.log("User logged in:", user.email, user.uid);
 
-            // Fetch the user's role from Firestore
-            const userRole = await authService.getUserRoleByEmail(user.email); // Use email directly
-            localStorage.setItem('userRole', userRole); // Store role in localStorage
+            const userRef = doc(firestore, "User", user.uid);
+            const userSnap = await getDoc(userRef);
 
-            // Redirect user to the dashboard based on their role
-            if (userRole === 'Admin') {
-                navigate('/admin-dashboard'); // Admin dashboard route
-            }
-            else if(userRole === 'Organization Liaison')
-            {
-                navigate('/organization-liason-dashboard')
-            }
-            else if(userRole === 'Event Moderator')
-            {
-                navigate('/event-moderator-dashboard')
-            }
-            else {
-                navigate('/student-dashboard'); // student dashboard route
+            // 🔧 Automatically set status to "Active" if not present
+            if (!userSnap.exists()) {
+                // If user doc doesn't exist, create one with default role and status
+                await setDoc(userRef, {
+                    email: user.email,
+                    role: "Student",       // Default role
+                    status: "Active"       // New status
+                });
+            } else if (!userSnap.data().status) {
+                // If user doc exists but missing status, patch it
+                await setDoc(userRef, { status: "Active" }, { merge: true });
             }
 
-            console.log('Logged in user:', user);
+            const userRole = await authService.getUserRoleByEmail(user.email);
+            console.log("User role:", userRole);
+
+            if (!userRole) {
+                alert("Your profile is not set up yet. Contact admin.");
+                return;
+            }
+
+            localStorage.setItem('userRole', userRole);
+
+            switch (userRole) {
+                case 'Admin':
+                    navigate('/admin-dashboard');
+                    break;
+                case 'Organization Liaison':
+                    navigate('/organization-liason-dashboard');
+                    break;
+                case 'Event Moderator':
+                    navigate('/event-moderator-dashboard');
+                    break;
+                case 'Student':
+                    navigate('/student-dashboard');
+                    break;
+                default:
+                    setError('Unauthorized role or missing role. Contact admin.');
+                    break;
+            }
+
         } catch (error) {
             setError('Failed to login. Please check your credentials.');
-            console.error('Login error:', error.message); // Log the Firebase error message
+            console.error('Login error:', error.message);
         }
     };
 
-
-
-    // Inline CSS
     const styles = {
         container: {
             margin: '0 auto',
@@ -88,17 +109,25 @@ function LoginPage() {
             <form onSubmit={handleLogin}>
                 <input
                     type="email"
+                    name="email"
+                    id="email"
+                    autoComplete="email"
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     style={styles.input}
+                    required
                 />
                 <input
                     type="password"
+                    name="password"
+                    id="password"
+                    autoComplete="current-password"
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     style={styles.input}
+                    required
                 />
                 <button type="submit" style={styles.button}>Login</button>
             </form>
