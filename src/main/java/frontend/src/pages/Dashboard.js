@@ -46,18 +46,17 @@ function DashboardPage() {
     const toggleActivation = async (userId) => {
         try {
             const user = users.find(u => u.id === userId);
-            const currentStatus = user.status === "Active";
-            const newStatus = currentStatus ? "Inactive" : "Active";
+            const newStatus = user.Status === "Active" ? "Inactive" : "Active";
 
             const userDocRef = doc(firestore, 'User', userId);
-            await updateDoc(userDocRef, { status: newStatus });
+            await updateDoc(userDocRef, { Status: newStatus });
 
             const updatedUsers = users.map(u =>
-                u.id === userId ? { ...u, status: newStatus } : u
+                u.id === userId ? { ...u, Status: newStatus } : u
             );
             setUsers(updatedUsers);
             if (selectedUser?.id === userId) {
-                setSelectedUser({ ...user, status: newStatus });
+                setSelectedUser({ ...user, Status: newStatus });
             }
         } catch (err) {
             console.error("Failed to update user status:", err);
@@ -103,7 +102,7 @@ function DashboardPage() {
 
                     <ul style={styles.list}>
                         {filteredUsers.map((user) => {
-                            const isActive = user.status === "Active";
+                            const isActive = user.Status === "Active";
                             return (
                                 <li key={user.id} style={styles.listItem}>
                                     <div style={{ flex: 1 }}>
@@ -143,7 +142,7 @@ function DashboardPage() {
                     <p><strong>Name:</strong> {selectedUser.name || "No name provided"}</p>
                     <p><strong>Email:</strong> {selectedUser.email || "No email available"}</p>
                     <p><strong>Role:</strong> {selectedUser.role || "N/A"}</p>
-                    <p><strong>Status:</strong> {selectedUser.status || "Inactive"}</p>
+                    <p><strong>Status:</strong> {selectedUser.Status || "Inactive"}</p>
                 </div>
             )}
 
