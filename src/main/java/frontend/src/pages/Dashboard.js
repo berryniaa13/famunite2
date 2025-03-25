@@ -205,7 +205,8 @@ const styles = {
         color: "white",
         border: "none",
         cursor: "pointer",
-        marginTop: "10px"
+        marginTop: "10px",
+        borderRadius: "5px",
     },
     error: {
         color: "red",

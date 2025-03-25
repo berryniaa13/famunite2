@@ -14,7 +14,7 @@ const SideNavbar = () => {
             <nav style={styles.nav}>
                 <Link to="/student-dashboard" style={styles.navLink}>Dashboard</Link>
                 <Link to="/events" style={styles.navLink}>Events</Link>
-                <Lin to="/profile" style={styles.navLink}>Profile</Lin>
+                <Link to="/profile" style={styles.navLink}>Profile</Link>
                 <Link to="/settings" style={styles.navLink}>Settings</Link>
                 <Link to="/login" style={styles.logout}>Logout</Link>
             </nav>
