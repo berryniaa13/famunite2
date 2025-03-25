@@ -90,7 +90,7 @@ function StudentDashboard() {
                             </button>
                             <button
                                 onClick={() => handleRegister(event.id)}
-                                style={{ ...styles.button, backgroundColor: "#007bff" }}
+                                style={{ ...styles.button, backgroundColor: "#12491B", color: "white" }}
                             >
                                 Register
                             </button>
@@ -115,8 +115,8 @@ function StudentDashboard() {
 }
 
 const styles = {
-    container: { textAlign: "center", padding: "20px" },
-    searchBar: { padding: "8px", width: "80%", margin: "10px auto", display: "block" },
+    container: { textAlign: "center", padding: "20px" , backgroundColor: "#F2EBE9"},
+    searchBar: { padding: "8px", width: "90%", margin: "10px auto", display: "block", borderRadius: "8px" },
     list: { listStyle: "none", padding: "0" },
     listItem: {
         padding: "10px",
@@ -129,9 +129,10 @@ const styles = {
         alignItems: "center"
     },
     button: {
-        padding: "5px 10px",
-        backgroundColor: "#28a745",
-        color: "white",
+        padding: "8px 12px",
+        backgroundColor: "#CDE0CA",
+        fontSize: "12px",
+        color: "black",
         border: "none",
         cursor: "pointer",
         borderRadius: "5px"
@@ -140,17 +141,18 @@ const styles = {
         marginTop: "20px",
         padding: "15px",
         border: "1px solid #ddd",
-        borderRadius: "5px",
+        borderRadius: "10px",
         backgroundColor: "#e9ecef"
     },
     logoutButton: {
         padding: "10px",
-        backgroundColor: "#007bff",
+        backgroundColor: "#BF6319",
         color: "white",
         border: "none",
         cursor: "pointer",
+        borderRadius: "5px",
         marginTop: "10px"
-    },
+    }
 };
 
 export default StudentDashboard;
