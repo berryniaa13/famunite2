@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
-import { collection, getDocs, addDoc, serverTimestamp, } from "firebase/firestore";
+import {
+    collection,
+    getDocs,
+    addDoc,
+    serverTimestamp,
+    //query,
+    //where,
+} from "firebase/firestore";
 import { auth, firestore } from '../context/firebaseConfig';
 
 function StudentDashboard() {
@@ -12,27 +19,39 @@ function StudentDashboard() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetchEvents();
+        fetchEventsWithRegistrationCounts();
     }, []);
 
-    const fetchEvents = async () => {
+    const fetchEventsWithRegistrationCounts = async () => {
         try {
-            const eventsRef = collection(firestore, "Event");
-            const snapshot = await getDocs(eventsRef);
-            const eventsList = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setEvents(eventsList);
-            setFilteredEvents(eventsList);
+            const eventsSnapshot = await getDocs(collection(firestore, "Event"));
+            const registrationsSnapshot = await getDocs(collection(firestore, "Registrations"));
+
+            const registrationsMap = {};
+            registrationsSnapshot.docs.forEach((doc) => {
+                const { eventId } = doc.data();
+                registrationsMap[eventId] = (registrationsMap[eventId] || 0) + 1;
+            });
+
+            const enrichedEvents = eventsSnapshot.docs.map((doc) => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    registrationCount: registrationsMap[doc.id] || 0
+                };
+            });
+
+            setEvents(enrichedEvents);
+            setFilteredEvents(enrichedEvents);
         } catch (error) {
-            console.error("Error fetching events:", error);
+            console.error("Error fetching events and registrations:", error);
         }
     };
 
     const handleSearch = (e) => {
         setSearchTerm(e.target.value);
-        setSelectedEvent(null); // Reset selected event when searching
+        setSelectedEvent(null);
         const filtered = events.filter(event =>
             event.title && event.title.toLowerCase().includes(e.target.value.toLowerCase())
         );
@@ -57,6 +76,7 @@ function StudentDashboard() {
                 timestamp: serverTimestamp()
             });
             alert("You have successfully registered for the event!");
+            fetchEventsWithRegistrationCounts(); // Refresh registration counts
         } catch (error) {
             console.error("Registration failed:", error);
             alert("Failed to register.");
@@ -83,6 +103,7 @@ function StudentDashboard() {
                     <li key={event.id} style={styles.listItem}>
                         <div style={{ flex: 1 }}>
                             <h3>{event.title || "Untitled Event"}</h3>
+                            <p><strong>Registrations:</strong> {event.registrationCount}</p>
                         </div>
                         <div style={{ display: "flex", gap: "10px" }}>
                             <button onClick={() => handleViewDetails(event)} style={styles.button}>
