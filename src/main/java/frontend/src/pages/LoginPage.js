@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { setDoc, doc, getDoc } from 'firebase/firestore'; // ✅ Added getDoc
-import { auth, firestore } from '../context/firebaseConfig';
+import { setDoc, doc } from 'firebase/firestore'; // ✅ ADD THIS
+import { auth, firestore } from '../context/firebaseConfig'; // ✅ ADD firestore
 import authService from '../services/authService';
 
 function LoginPage() {
@@ -19,22 +19,13 @@ function LoginPage() {
 
             console.log("User logged in:", user.email, user.uid);
 
-            const userRef = doc(firestore, "User", user.uid);
-            const userSnap = await getDoc(userRef);
+            // ✅ TEMPORARY FIX: Ensure user profile exists with correct UID
+            await setDoc(doc(firestore, "User", user.uid), {
+                email: user.email,
+                //role: "Organization Liaison" // Or whatever role this user should have
+            }, { merge: true }); // Use merge:true so it doesn't overwrite existing data
 
-            // 🔧 Automatically set status to "Active" if not present
-            if (!userSnap.exists()) {
-                // If user doc doesn't exist, create one with default role and status
-                await setDoc(userRef, {
-                    email: user.email,
-                    role: "Student",       // Default role
-                    status: "Active"       // New status
-                });
-            } else if (!userSnap.data().status) {
-                // If user doc exists but missing status, patch it
-                await setDoc(userRef, { status: "Active" }, { merge: true });
-            }
-
+            // 🔍 Now retrieve the role for routing
             const userRole = await authService.getUserRoleByEmail(user.email);
             console.log("User role:", userRole);
 
@@ -68,6 +59,7 @@ function LoginPage() {
             console.error('Login error:', error.message);
         }
     };
+
 
     const styles = {
         container: {

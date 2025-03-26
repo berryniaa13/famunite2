@@ -9,7 +9,7 @@ const authService = {
         }
 
         try {
-            console.log("Querying role for email:", email);
+            console.log(`Querying role for email: ${email}`);
 
             const q = query(
                 collection(firestore, 'User'),
@@ -40,4 +40,3 @@ const authService = {
 };
 
 export default authService;
-

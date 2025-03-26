@@ -6,8 +6,8 @@ import {
     getDocs,
     addDoc,
     serverTimestamp,
-    //query,
-    //where,
+    doc,
+    getDoc
 } from "firebase/firestore";
 import { auth, firestore } from '../context/firebaseConfig';
 
@@ -70,13 +70,22 @@ function StudentDashboard() {
         }
 
         try {
+            const eventRef = doc(firestore, "Event", eventId);
+            const eventSnap = await getDoc(eventRef);
+
+            if (!eventSnap.exists() || !eventSnap.data().verified) {
+                alert("This event is not verified yet.");
+                return;
+            }
+
             await addDoc(collection(firestore, "Registrations"), {
                 userId: user.uid,
                 eventId: eventId,
                 timestamp: serverTimestamp()
             });
+
             alert("You have successfully registered for the event!");
-            fetchEventsWithRegistrationCounts(); // Refresh registration counts
+            fetchEventsWithRegistrationCounts();
         } catch (error) {
             console.error("Registration failed:", error);
             alert("Failed to register.");
@@ -104,17 +113,28 @@ function StudentDashboard() {
                         <div style={{ flex: 1 }}>
                             <h3>{event.title || "Untitled Event"}</h3>
                             <p><strong>Registrations:</strong> {event.registrationCount}</p>
+                            {!event.verified && (
+                                <p style={{ color: "red", fontSize: "12px" }}>
+                                    This event is not yet verified.
+                                </p>
+                            )}
                         </div>
                         <div style={{ display: "flex", gap: "10px" }}>
                             <button onClick={() => handleViewDetails(event)} style={styles.button}>
                                 View Details
                             </button>
-                            <button
-                                onClick={() => handleRegister(event.id)}
-                                style={{ ...styles.button, backgroundColor: "#007bff" }}
-                            >
-                                Register
-                            </button>
+                            {event.verified ? (
+                                <button
+                                    onClick={() => handleRegister(event.id)}
+                                    style={{ ...styles.button, backgroundColor: "#007bff" }}
+                                >
+                                    Register
+                                </button>
+                            ) : (
+                                <span style={{ color: "gray", fontSize: "12px", alignSelf: "center" }}>
+                                    Awaiting Verification
+                                </span>
+                            )}
                         </div>
                     </li>
                 ))}

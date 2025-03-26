@@ -46,23 +46,25 @@ function DashboardPage() {
     const toggleActivation = async (userId) => {
         try {
             const user = users.find(u => u.id === userId);
-            const newStatus = user.Status === "Active" ? "Inactive" : "Active";
+            const currentStatus = user.status === "Active";
+            const newStatus = currentStatus ? "Inactive" : "Active";
 
             const userDocRef = doc(firestore, 'User', userId);
-            await updateDoc(userDocRef, { Status: newStatus });
+            await updateDoc(userDocRef, { status: newStatus });
 
             const updatedUsers = users.map(u =>
-                u.id === userId ? { ...u, Status: newStatus } : u
+                u.id === userId ? { ...u, status: newStatus } : u
             );
             setUsers(updatedUsers);
             if (selectedUser?.id === userId) {
-                setSelectedUser({ ...user, Status: newStatus });
+                setSelectedUser({ ...user, status: newStatus });
             }
         } catch (err) {
             console.error("Failed to update user status:", err);
             setError("Failed to update user status.");
         }
     };
+
 
     const handleLogout = () => {
         localStorage.removeItem('userRole');
@@ -102,7 +104,7 @@ function DashboardPage() {
 
                     <ul style={styles.list}>
                         {filteredUsers.map((user) => {
-                            const isActive = user.Status === "Active";
+                            const isActive = !!user.isActive;
                             return (
                                 <li key={user.id} style={styles.listItem}>
                                     <div style={{ flex: 1 }}>
@@ -142,7 +144,7 @@ function DashboardPage() {
                     <p><strong>Name:</strong> {selectedUser.name || "No name provided"}</p>
                     <p><strong>Email:</strong> {selectedUser.email || "No email available"}</p>
                     <p><strong>Role:</strong> {selectedUser.role || "N/A"}</p>
-                    <p><strong>Status:</strong> {selectedUser.Status || "Inactive"}</p>
+                    <p><strong>Status:</strong> {selectedUser.isActive ? "Active" : "Inactive"}</p>
                 </div>
             )}
 
@@ -191,6 +193,7 @@ const styles = {
 };
 
 export default DashboardPage;
+
 
 
 
