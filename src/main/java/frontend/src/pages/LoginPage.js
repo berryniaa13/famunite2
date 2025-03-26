@@ -4,6 +4,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { setDoc, doc } from 'firebase/firestore'; // ✅ ADD THIS
 import { auth, firestore } from '../context/firebaseConfig'; // ✅ ADD firestore
 import authService from '../services/authService';
+import famUniteLogo from "../assets/FAMUniteLogoNude.png";
 
 function LoginPage() {
     const navigate = useNavigate();
@@ -64,15 +65,26 @@ function LoginPage() {
     const styles = {
         container: {
             margin: '0 auto',
-            width: '300px',
+            width: '500px',
             textAlign: 'center',
-            border: '1px solid #ddd',
+            border: '0px solid #ddd',
             padding: '20px',
-            borderRadius: '5px',
-            marginTop: '100px'
+            backgroundColor: '#F2EBE9',
+            // borderRadius: '5px',
+            marginTop: '100px',
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "10px",
+        },
+
+        headerContainer: {
+            display: "flex",
+            alignItems: "center",
+            gap: "10px"
         },
         input: {
-            marginBottom: '10px',
+            marginBottom: '20px',
             width: '100%',
             height: '40px',
             padding: '0 10px',
@@ -82,23 +94,44 @@ function LoginPage() {
         button: {
             width: '100%',
             height: '40px',
-            backgroundColor: '#007bff',
+            backgroundColor: '#12491B',
             color: 'white',
             border: 'none',
             borderRadius: '5px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            fontWeight: 'bold'
         },
         error: {
             color: 'red',
             marginBottom: '10px'
+        },
+        logo: {
+            width: "50px", // Adjust logo size
+            height: "50px",
+        },
+        header: {
+            fontSize: "24px",
+            fontWeight: "bold",
+            color: "#12491B",
+        },
+        pageWrapper: {
+            backgroundColor: '#F2EBE9',
+            minHeight: '100vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
         }
     };
 
     return (
+        <div style ={styles.pageWrapper}>
         <div style={styles.container}>
-            <h1>Login</h1>
+            <div style={styles.headerContainer}>
+                <img src={famUniteLogo} alt="FAMUnite Logo" style={styles.logo} />
+                <h1 style={styles.header}>Login</h1>
+            </div>
             {error && <p style={styles.error}>{error}</p>}
-            <form onSubmit={handleLogin}>
+            <form onSubmit={handleLogin} style={{margin: '10px 10px 10px 10px'}}>
                 <input
                     type="email"
                     name="email"
@@ -123,6 +156,7 @@ function LoginPage() {
                 />
                 <button type="submit" style={styles.button}>Login</button>
             </form>
+        </div>
         </div>
     );
 }
