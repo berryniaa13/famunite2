@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { firestore } from '../context/firebaseConfig';
+import SideNavbar from "../components/SideNavbar";
+import famUniteLogo from "../assets/FAMUniteLogoNude.png";
+
 
 function DashboardPage() {
     const navigate = useNavigate();
@@ -95,7 +98,12 @@ function DashboardPage() {
 
     return (
         <div style={styles.container}>
-            <h1>Admin Dashboard</h1>
+            <SideNavbar/>
+            <div style={{marginLeft: "250px"}}>
+            <div style={styles.headerContainer}>
+                <img src={famUniteLogo} alt="FAMUnite Logo" style={styles.logo} />
+                <h2 style={styles.header}> Admin Home </h2>
+            </div>
 
             {error && <div style={styles.errorNotification}>{error}</div>}
 
@@ -157,13 +165,29 @@ function DashboardPage() {
 
             <button onClick={handleLogout} style={styles.logoutButton}>Logout</button>
         </div>
+        </div>
     );
 }
 
 const styles = {
-    container: { textAlign: "center", padding: "20px" },
+    container: { textAlign: "center", padding: "20px", backgroundColor: "#F2EBE9" },
     searchBar: { padding: "8px", width: "80%", margin: "10px auto", display: "block" },
     list: { listStyle: "none", padding: "0" },
+    headerContainer: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "10px",
+        marginBottom: "20px"
+    },
+    logo: {
+        width: "50px",
+        height: "50px",
+    },
+    header: {
+        fontSize: "24px",
+        fontWeight: "bold",
+    },
     listItem: {
         padding: "10px", border: "1px solid #ddd", margin: "10px",
         borderRadius: "5px", backgroundColor: "#f9f9f9", display: "flex",
@@ -171,7 +195,7 @@ const styles = {
     },
     button: {
         padding: "5px 10px",
-        backgroundColor: "#28a745",
+        backgroundColor: "#12491B",
         color: "white",
         border: "none",
         cursor: "pointer",
@@ -186,11 +210,12 @@ const styles = {
     },
     logoutButton: {
         padding: "10px",
-        backgroundColor: "#007bff",
+        backgroundColor: "#BF6319",
         color: "white",
         border: "none",
         cursor: "pointer",
-        marginTop: "10px"
+        marginTop: "10px",
+        borderRadius: "5px",
     },
     errorNotification: {
         color: "red",
