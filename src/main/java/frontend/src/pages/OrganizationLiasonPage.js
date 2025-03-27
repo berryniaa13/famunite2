@@ -83,7 +83,6 @@ function OrganizationLiaisonDashboard() {
         }
     };
 
-
     const handleEditEvent = async () => {
         if (!selectedEvent?.id) return;
 
@@ -204,14 +203,14 @@ function OrganizationLiaisonDashboard() {
 }
 
 const styles = {
-    container: { textAlign: "center", padding: "20px", maxWidth: "700px", margin: "0 auto" },
+    container: { textAlign: "center", padding: "20px", maxWidth: "700px", margin: "0 auto", backgroundColor: "#F2EBE9" },
     searchBar: { padding: "8px", width: "90%", marginBottom: "20px" },
     section: { marginBottom: "30px" },
     input: { padding: "8px", margin: "5px", width: "90%" },
     button: {
         padding: "10px 20px",
-        backgroundColor: "#28a745",
-        color: "white",
+        backgroundColor: "#CDE0CA",
+        color: "black",
         border: "none",
         cursor: "pointer",
         borderRadius: "5px",
@@ -220,7 +219,7 @@ const styles = {
     smallButton: {
         padding: "5px 10px",
         marginLeft: "5px",
-        backgroundColor: "#007bff",
+        backgroundColor: "#12491B",
         color: "white",
         border: "none",
         borderRadius: "5px",
@@ -248,7 +247,7 @@ const styles = {
     },
     logoutButton: {
         padding: "10px",
-        backgroundColor: "#007bff",
+        backgroundColor: "#BF6319",
         color: "white",
         border: "none",
         cursor: "pointer",
@@ -257,5 +256,3 @@ const styles = {
 };
 
 export default OrganizationLiaisonDashboard;
-
-
