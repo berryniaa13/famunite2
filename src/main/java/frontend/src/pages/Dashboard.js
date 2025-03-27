@@ -20,6 +20,9 @@ function DashboardPage() {
             setRole(storedRole);
             if (storedRole === 'Admin') {
                 fetchUsers();
+            } else {
+                setError('You are not authorized to access the admin dashboard.');
+                setLoading(false);
             }
         }
     }, [navigate]);
@@ -33,11 +36,11 @@ function DashboardPage() {
                     id: doc.id,
                     ...doc.data()
                 }))
-                .filter(user => user.role !== 'Admin');
+                .filter(user => user.role !== 'Admin');  // Ensure only non-admin users are fetched
             setUsers(usersList);
         } catch (error) {
             console.error("Error fetching users from Firestore:", error);
-            setError("You do not have permission to access this data.");
+            setError("Failed to load users.");
         } finally {
             setLoading(false);
         }
@@ -46,12 +49,17 @@ function DashboardPage() {
     const toggleActivation = async (userId) => {
         try {
             const user = users.find(u => u.id === userId);
+            if (!user) {
+                throw new Error("User not found.");
+            }
+
             const currentStatus = user.status === "Active";
             const newStatus = currentStatus ? "Inactive" : "Active";
 
             const userDocRef = doc(firestore, 'User', userId);
             await updateDoc(userDocRef, { status: newStatus });
 
+            // Update local state (users array) with the new status
             const updatedUsers = users.map(u =>
                 u.id === userId ? { ...u, status: newStatus } : u
             );
@@ -61,14 +69,13 @@ function DashboardPage() {
             }
         } catch (err) {
             console.error("Failed to update user status:", err);
-            setError("Failed to update user status.");
+            setError("Failed to update user status. " + err.message); // Enhanced error message
         }
     };
 
-
     const handleLogout = () => {
         localStorage.removeItem('userRole');
-        navigate('/login');
+        navigate('/login'); // Redirect to login immediately after logout
     };
 
     const handleSearch = (e) => {
@@ -90,7 +97,7 @@ function DashboardPage() {
         <div style={styles.container}>
             <h1>Admin Dashboard</h1>
 
-            {error && <div style={styles.error}>{error}</div>}
+            {error && <div style={styles.errorNotification}>{error}</div>}
 
             {role === 'Admin' ? (
                 <>
@@ -104,7 +111,7 @@ function DashboardPage() {
 
                     <ul style={styles.list}>
                         {filteredUsers.map((user) => {
-                            const isActive = !!user.isActive;
+                            const isActive = !!user.status && user.status === "Active";
                             return (
                                 <li key={user.id} style={styles.listItem}>
                                     <div style={{ flex: 1 }}>
@@ -144,7 +151,7 @@ function DashboardPage() {
                     <p><strong>Name:</strong> {selectedUser.name || "No name provided"}</p>
                     <p><strong>Email:</strong> {selectedUser.email || "No email available"}</p>
                     <p><strong>Role:</strong> {selectedUser.role || "N/A"}</p>
-                    <p><strong>Status:</strong> {selectedUser.isActive ? "Active" : "Inactive"}</p>
+                    <p><strong>Status:</strong> {selectedUser.status || "Inactive"}</p>
                 </div>
             )}
 
@@ -185,15 +192,12 @@ const styles = {
         cursor: "pointer",
         marginTop: "10px"
     },
-    error: {
+    errorNotification: {
         color: "red",
         margin: "10px 0",
-        fontSize: "14px"
+        fontSize: "14px",
+        fontWeight: "bold"
     }
 };
 
 export default DashboardPage;
-
-
-
-
