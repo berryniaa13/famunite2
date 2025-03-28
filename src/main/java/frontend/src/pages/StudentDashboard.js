@@ -226,6 +226,9 @@ import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { collection, getDocs, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore";
 import { auth, firestore } from '../context/firebaseConfig';
+import SideNavbar from "../components/SideNavbar";
+import famUniteLogo from "../assets/FAMUniteLogoNude.png";
+
 
 function StudentDashboard() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -301,7 +304,12 @@ function StudentDashboard() {
 
     return (
         <div style={styles.container}>
-            <h2>Student Dashboard</h2>
+            <SideNavbar/>
+            <div style={{marginLeft: "250px"}}>
+                <div style={styles.headerContainer}>
+                    <img src={famUniteLogo} alt="FAMUnite Logo" style={styles.logo} />
+                    <h2 style={styles.header}>Home</h2>
+                </div>
             <input
                 type="text"
                 placeholder="Enter event title..."
@@ -347,6 +355,7 @@ function StudentDashboard() {
             )}
 
             <button onClick={handleLogout} style={styles.logoutButton}>Logout</button>
+            </div>
         </div>
     );
 }
@@ -367,6 +376,21 @@ const styles = {
     list: {
         listStyle: "none",
         padding: "0"
+    },
+    headerContainer: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "10px",
+        marginBottom: "20px"
+    },
+    logo: {
+        width: "50px",
+        height: "50px",
+    },
+    header: {
+        fontSize: "24px",
+        fontWeight: "bold",
     },
     listItem: {
         padding: "10px",
