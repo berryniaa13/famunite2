@@ -8,12 +8,14 @@ import OrganizationLiasonPage from "./pages/OrganizationLiasonPage";
 import Events from "./pages/Events";
 import Profile from "./pages/Profile";
 import Messages from "./pages/Messages";
+import SignUpPage from "./pages/SignUpPage";
 
 function App() {
     return (
         <Router>
             <Routes>
                 <Route path="/" element={<LoginPage />} />
+                <Route path="/signup" element={<SignUpPage />} /> {/*Sign Up Page*/}
                 <Route path="/admin-dashboard" element={<DashboardPage />} />  {/* Admin Dashboard */}
                 <Route path="/student-dashboard" element={<StudentDashboard />} />   {/* User Dashboard */}
                 <Route path="/event-moderator-dashboard" element={<EventModeratorPage />} />   {/* EventModerator Dashboard */}

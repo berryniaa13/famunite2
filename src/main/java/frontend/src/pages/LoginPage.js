@@ -101,6 +101,17 @@ function LoginPage() {
             cursor: 'pointer',
             fontWeight: 'bold'
         },
+        signUpButton: {
+            width: '100%',
+            height: '40px',
+            backgroundColor: '#12491B',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            marginTop: '10px'
+        },
         error: {
             color: 'red',
             marginBottom: '10px'
@@ -155,6 +166,7 @@ function LoginPage() {
                     required
                 />
                 <button type="submit" style={styles.button}>Login</button>
+                <button style={styles.signUpButton} onClick={()=> navigate('/signup')}>Sign Up</button>
             </form>
         </div>
         </div>
