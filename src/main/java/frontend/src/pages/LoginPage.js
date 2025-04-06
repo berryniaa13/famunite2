@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { setDoc, doc } from 'firebase/firestore'; // ✅ ADD THIS
-import { auth, firestore } from '../context/firebaseConfig'; // ✅ ADD firestore
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { getDoc, doc } from 'firebase/firestore';
+import { auth, firestore } from '../context/firebaseConfig';
 import authService from '../services/authService';
 import famUniteLogo from "../assets/FAMUniteLogoNude.png";
 
@@ -14,29 +14,45 @@ function LoginPage() {
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        setError(""); // Clear previous error
+
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
             console.log("User logged in:", user.email, user.uid);
 
-            // ✅ TEMPORARY FIX: Ensure user profile exists with correct UID
-            await setDoc(doc(firestore, "User", user.uid), {
-                email: user.email,
-                //role: "Organization Liaison" // Or whatever role this user should have
-            }, { merge: true }); // Use merge:true so it doesn't overwrite existing data
+            const userRef = doc(firestore, "User", user.uid);
+            const userDoc = await getDoc(userRef, { source: 'server' }); // Force fresh fetch
 
-            // 🔍 Now retrieve the role for routing
+            if (!userDoc.exists()) {
+                await signOut(auth);
+                setError("User profile not found. Contact admin.");
+                return;
+            }
+
+            const userData = userDoc.data();
+            console.log("Fetched user status:", userData.status);
+
+            if (userData.status !== "Active") {
+                await signOut(auth);
+                setError("Your account is inactive. Please contact an admin.");
+                return;
+            }
+
+            // Get role from Firestore via helper
             const userRole = await authService.getUserRoleByEmail(user.email);
             console.log("User role:", userRole);
 
             if (!userRole) {
-                alert("Your profile is not set up yet. Contact admin.");
+                await signOut(auth);
+                setError("Your profile is missing a role. Contact admin.");
                 return;
             }
 
             localStorage.setItem('userRole', userRole);
 
+            // Navigate based on role
             switch (userRole) {
                 case 'Admin':
                     navigate('/admin-dashboard');
@@ -51,33 +67,30 @@ function LoginPage() {
                     navigate('/student-dashboard');
                     break;
                 default:
-                    setError('Unauthorized role or missing role. Contact admin.');
+                    await signOut(auth);
+                    setError('Unauthorized role. Contact admin.');
                     break;
             }
 
         } catch (error) {
-            setError('Failed to login. Please check your credentials.');
             console.error('Login error:', error.message);
+            setError('Failed to login. Please check your credentials.');
         }
     };
-
 
     const styles = {
         container: {
             margin: '0 auto',
             width: '500px',
             textAlign: 'center',
-            border: '0px solid #ddd',
             padding: '20px',
             backgroundColor: '#F2EBE9',
-            // borderRadius: '5px',
             marginTop: '100px',
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             gap: "10px",
         },
-
         headerContainer: {
             display: "flex",
             alignItems: "center",
@@ -117,7 +130,7 @@ function LoginPage() {
             marginBottom: '10px'
         },
         logo: {
-            width: "50px", // Adjust logo size
+            width: "50px",
             height: "50px",
         },
         header: {
@@ -135,40 +148,42 @@ function LoginPage() {
     };
 
     return (
-        <div style ={styles.pageWrapper}>
-        <div style={styles.container}>
-            <div style={styles.headerContainer}>
-                <img src={famUniteLogo} alt="FAMUnite Logo" style={styles.logo} />
-                <h1 style={styles.header}>Login</h1>
+        <div style={styles.pageWrapper}>
+            <div style={styles.container}>
+                <div style={styles.headerContainer}>
+                    <img src={famUniteLogo} alt="FAMUnite Logo" style={styles.logo} />
+                    <h1 style={styles.header}>Login</h1>
+                </div>
+                {error && <p style={styles.error}>{error}</p>}
+                <form onSubmit={handleLogin} style={{ margin: '10px' }}>
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        style={styles.input}
+                        required
+                    />
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        style={styles.input}
+                        required
+                    />
+                    <button type="submit" style={styles.button}>Login</button>
+                    <button
+                        type="button"
+                        style={styles.signUpButton}
+                        onClick={() => navigate('/signup')}
+                    >
+                        Sign Up
+                    </button>
+                </form>
             </div>
-            {error && <p style={styles.error}>{error}</p>}
-            <form onSubmit={handleLogin} style={{margin: '10px 10px 10px 10px'}}>
-                <input
-                    type="email"
-                    name="email"
-                    id="email"
-                    autoComplete="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    style={styles.input}
-                    required
-                />
-                <input
-                    type="password"
-                    name="password"
-                    id="password"
-                    autoComplete="current-password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    style={styles.input}
-                    required
-                />
-                <button type="submit" style={styles.button}>Login</button>
-                <button style={styles.signUpButton} onClick={()=> navigate('/signup')}>Sign Up</button>
-            </form>
-        </div>
         </div>
     );
 }
