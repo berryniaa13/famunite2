@@ -38,7 +38,7 @@ function DashboardPage() {
                     id: doc.id,
                     ...doc.data()
                 }))
-                .filter(user => user.role !== 'Admin');  // Ensure only non-admin users are fetched
+                .filter(user => user.role !== 'Admin');
             setUsers(usersList);
         } catch (error) {
             console.error("Error fetching users from Firestore:", error);
@@ -87,7 +87,7 @@ function DashboardPage() {
 
     const handleLogout = () => {
         localStorage.removeItem('userRole');
-        navigate('/login'); // Redirect to login immediately after logout
+        navigate('/login');
     };
 
     const handleSearch = (e) => {
@@ -128,7 +128,7 @@ function DashboardPage() {
 
                         <ul style={styles.list}>
                             {filteredUsers.map((user) => {
-                                const currentStatus = user.status || "Inactive"; // Default status if not set
+                                const currentStatus = user.status || "Inactive";
                                 return (
                                     <li key={user.id} style={styles.listItem}>
                                         <div style={{ flex: 1 }}>
