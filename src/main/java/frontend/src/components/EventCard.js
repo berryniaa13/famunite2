@@ -1,21 +1,56 @@
 import React from "react";
-import sampleEventImage from "../assets/sampleEventImage.jpg"
-//import {ImagenImageFormat as ampleEvent} from "@firebase/vertexai";
+import sampleEventImage from "../assets/sampleEventImage.jpg";
 
-// Default placeholder image (replace with your asset path or a hosted URL)
 const placeholderImage = sampleEventImage;
 
+// Map each category to a unique color
+const categoryColors = {
+    "Academic": "#6a1b9a",
+    "Career / Professional Development": "#1565c0",
+    "Workshops": "#4527a0",
+    "Social": "#d81b60",
+    "Cultural": "#00897b",
+    "Performing Arts / Entertainment": "#ef6c00",
+    "Community Service": "#2e7d32",
+    "Health & Wellness": "#c62828",
+    "Sports / Recreation": "#0277bd",
+    "Religious / Spiritual": "#6d4c41",
+    "Club / Organization Meetings": "#5d4037",
+    "Fundraisers": "#ad1457",
+    "Networking Events": "#00838f",
+    "Student Government": "#283593",
+    "Study Groups / Tutoring": "#3949ab",
+    "Housing & Campus Life": "#4e342e",
+    "Competitions / Hackathons": "#1e88e5",
+    "Tech / Innovation": "#0097a7",
+    "Political": "#c62828",
+    "Alumni Events": "#8e24aa"
+};
+
 const EventCard = ({ event, onViewDetails, onRegister }) => {
+    const tagColor = categoryColors[event.category] || "#9e9e9e";
+
     return (
         <li style={styles.card} className="event-card">
-            <img
-                src={event.imageURL || placeholderImage}
-                alt={event.title || "Event"}
-                style={styles.image}
-            />
+            <div style={{ position: "relative" }}>
+                <img
+                    src={event.imageURL || placeholderImage}
+                    alt={event.title || "Event"}
+                    style={styles.image}
+                />
+                {event.category && (
+                    <span
+                        style={{
+                            ...styles.tag,
+                            backgroundColor: tagColor
+                        }}
+                    >
+                        {event.category}
+                    </span>
+                )}
+            </div>
             <div style={styles.body}>
                 <h3 style={styles.title}>{event.title || "Untitled Event"}</h3>
-                <p style={styles.category}><strong>Category:</strong> {event.category || "N/A"}</p>
                 <p style={styles.meta}><strong>Location:</strong> {event.location || "TBD"}</p>
                 <p style={styles.meta}><strong>Date:</strong> {event.date || "TBD"}</p>
             </div>
@@ -56,7 +91,8 @@ const styles = {
         backgroundColor: "#fff",
         display: "flex",
         flexDirection: "column",
-        overflow: "hidden"
+        overflow: "hidden",
+        position: "relative"
     },
     image: {
         width: "100%",
@@ -65,6 +101,17 @@ const styles = {
         borderTopLeftRadius: "12px",
         borderTopRightRadius: "12px"
     },
+    tag: {
+        position: "absolute",
+        top: "10px",
+        right: "10px",
+        padding: "4px 8px",
+        color: "#fff",
+        fontSize: "11px",
+        fontWeight: "bold",
+        borderRadius: "6px",
+        whiteSpace: "nowrap"
+    },
     body: {
         padding: "12px",
         flex: 1
@@ -72,11 +119,6 @@ const styles = {
     title: {
         fontSize: "16px",
         fontWeight: "600",
-        marginBottom: "6px"
-    },
-    category: {
-        fontSize: "13px",
-        color: "#555",
         marginBottom: "8px"
     },
     meta: {
