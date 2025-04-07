@@ -5,7 +5,6 @@ import { firestore } from '../context/firebaseConfig';
 import SideNavbar from "../components/SideNavbar";
 import famUniteLogo from "../assets/FAMUniteLogoNude.png";
 
-
 function DashboardPage() {
     const navigate = useNavigate();
     const [role, setRole] = useState(null);
@@ -39,7 +38,7 @@ function DashboardPage() {
                     id: doc.id,
                     ...doc.data()
                 }))
-                .filter(user => user.role !== 'Admin');  // Ensure only non-admin users are fetched
+                .filter(user => user.role !== 'Admin');
             setUsers(usersList);
         } catch (error) {
             console.error("Error fetching users from Firestore:", error);
@@ -49,20 +48,18 @@ function DashboardPage() {
         }
     };
 
-    const toggleActivation = async (userId) => {
+    // Generic function to update a user's status
+    const updateUserStatus = async (userId, newStatus) => {
         try {
             const user = users.find(u => u.id === userId);
             if (!user) {
                 throw new Error("User not found.");
             }
 
-            const currentStatus = user.status === "Active";
-            const newStatus = currentStatus ? "Inactive" : "Active";
-
             const userDocRef = doc(firestore, 'User', userId);
             await updateDoc(userDocRef, { status: newStatus });
 
-            // Update local state (users array) with the new status
+            // Update local state
             const updatedUsers = users.map(u =>
                 u.id === userId ? { ...u, status: newStatus } : u
             );
@@ -72,13 +69,25 @@ function DashboardPage() {
             }
         } catch (err) {
             console.error("Failed to update user status:", err);
-            setError("Failed to update user status. " + err.message); // Enhanced error message
+            setError("Failed to update user status. " + err.message);
+        }
+    };
+
+    // Handlers for specific status changes
+    const handleActivate = (userId) => updateUserStatus(userId, "Active");
+    const handleDeactivate = (userId) => updateUserStatus(userId, "Inactive");
+    const handleBan = (userId, currentStatus) => {
+        // If the user is already banned, "unban" by setting them to Active.
+        if (currentStatus === "Banned") {
+            updateUserStatus(userId, "Active");
+        } else {
+            updateUserStatus(userId, "Banned");
         }
     };
 
     const handleLogout = () => {
         localStorage.removeItem('userRole');
-        navigate('/login'); // Redirect to login immediately after logout
+        navigate('/login');
     };
 
     const handleSearch = (e) => {
@@ -98,73 +107,96 @@ function DashboardPage() {
 
     return (
         <div style={styles.container}>
-            <SideNavbar/>
-            <div style={{marginLeft: "250px"}}>
-            <div style={styles.headerContainer}>
-                <img src={famUniteLogo} alt="FAMUnite Logo" style={styles.logo} />
-                <h2 style={styles.header}> Admin Home </h2>
-            </div>
-
-            {error && <div style={styles.errorNotification}>{error}</div>}
-
-            {role === 'Admin' ? (
-                <>
-                    <input
-                        type="text"
-                        placeholder="Search users..."
-                        value={searchTerm}
-                        onChange={handleSearch}
-                        style={styles.searchBar}
-                    />
-
-                    <ul style={styles.list}>
-                        {filteredUsers.map((user) => {
-                            const isActive = !!user.status && user.status === "Active";
-                            return (
-                                <li key={user.id} style={styles.listItem}>
-                                    <div style={{ flex: 1 }}>
-                                        <h3>{user.name || "Unnamed User"}</h3>
-                                        <p>{user.email}</p>
-                                    </div>
-                                    <div style={{ display: "flex", gap: "10px" }}>
-                                        <button
-                                            onClick={() => handleViewDetails(user)}
-                                            style={styles.button}
-                                        >
-                                            View Details
-                                        </button>
-                                        <button
-                                            onClick={() => toggleActivation(user.id)}
-                                            style={{
-                                                ...styles.button,
-                                                backgroundColor: isActive ? '#dc3545' : '#28a745'
-                                            }}
-                                        >
-                                            {isActive ? 'Deactivate' : 'Activate'}
-                                        </button>
-                                    </div>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </>
-            ) : (
-                <p>You do not have access to the admin dashboard.</p>
-            )}
-
-            {selectedUser && (
-                <div style={styles.detailsContainer}>
-                    <h3>User Details</h3>
-                    <p><strong>ID:</strong> {selectedUser.id}</p>
-                    <p><strong>Name:</strong> {selectedUser.name || "No name provided"}</p>
-                    <p><strong>Email:</strong> {selectedUser.email || "No email available"}</p>
-                    <p><strong>Role:</strong> {selectedUser.role || "N/A"}</p>
-                    <p><strong>Status:</strong> {selectedUser.status || "Inactive"}</p>
+            <SideNavbar />
+            <div style={{ marginLeft: "250px" }}>
+                <div style={styles.headerContainer}>
+                    <img src={famUniteLogo} alt="FAMUnite Logo" style={styles.logo} />
+                    <h2 style={styles.header}> Admin Home </h2>
                 </div>
-            )}
 
-            <button onClick={handleLogout} style={styles.logoutButton}>Logout</button>
-        </div>
+                {error && <div style={styles.errorNotification}>{error}</div>}
+
+                {role === 'Admin' ? (
+                    <>
+                        <input
+                            type="text"
+                            placeholder="Search users..."
+                            value={searchTerm}
+                            onChange={handleSearch}
+                            style={styles.searchBar}
+                        />
+
+                        <ul style={styles.list}>
+                            {filteredUsers.map((user) => {
+                                const currentStatus = user.status || "Inactive";
+                                return (
+                                    <li key={user.id} style={styles.listItem}>
+                                        <div style={{ flex: 1 }}>
+                                            <h3>{user.name || "Unnamed User"}</h3>
+                                            <p>{user.email}</p>
+                                            <p><strong>Status:</strong> {currentStatus}</p>
+                                        </div>
+                                        <div style={{ display: "flex", gap: "10px" }}>
+                                            <button
+                                                onClick={() => handleViewDetails(user)}
+                                                style={styles.button}
+                                            >
+                                                View Details
+                                            </button>
+                                            {currentStatus === "Active" && (
+                                                <button
+                                                    onClick={() => handleDeactivate(user.id)}
+                                                    style={{ ...styles.button, backgroundColor: '#dc3545' }}
+                                                >
+                                                    Deactivate
+                                                </button>
+                                            )}
+                                            {currentStatus === "Inactive" && (
+                                                <button
+                                                    onClick={() => handleActivate(user.id)}
+                                                    style={{ ...styles.button, backgroundColor: '#28a745' }}
+                                                >
+                                                    Activate
+                                                </button>
+                                            )}
+                                            {currentStatus !== "Banned" ? (
+                                                <button
+                                                    onClick={() => handleBan(user.id, currentStatus)}
+                                                    style={{ ...styles.button, backgroundColor: '#6c757d' }}
+                                                >
+                                                    Ban
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleBan(user.id, currentStatus)}
+                                                    style={{ ...styles.button, backgroundColor: '#28a745' }}
+                                                >
+                                                    Unban
+                                                </button>
+                                            )}
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </>
+                ) : (
+                    <p>You do not have access to the admin dashboard.</p>
+                )}
+
+                {selectedUser && (
+                    <div style={styles.detailsContainer}>
+                        <h3>User Details</h3>
+                        <p><strong>ID:</strong> {selectedUser.id}</p>
+                        <p><strong>Name:</strong> {selectedUser.name || "No name provided"}</p>
+                        <p><strong>Email:</strong> {selectedUser.email || "No email available"}</p>
+                        <p><strong>Role:</strong> {selectedUser.role || "N/A"}</p>
+                        <p><strong>Status:</strong> {selectedUser.status || "Inactive"}</p>
+                    </div>
+                )}
+
+                <button onClick={handleLogout} style={styles.logoutButton}>Logout</button>
+            </div>
         </div>
     );
 }
@@ -189,9 +221,14 @@ const styles = {
         fontWeight: "bold",
     },
     listItem: {
-        padding: "10px", border: "1px solid #ddd", margin: "10px",
-        borderRadius: "5px", backgroundColor: "#f9f9f9", display: "flex",
-        justifyContent: "space-between", alignItems: "center"
+        padding: "10px",
+        border: "1px solid #ddd",
+        margin: "10px",
+        borderRadius: "5px",
+        backgroundColor: "#f9f9f9",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
     },
     button: {
         padding: "5px 10px",
@@ -226,3 +263,4 @@ const styles = {
 };
 
 export default DashboardPage;
+
