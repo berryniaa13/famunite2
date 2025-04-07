@@ -11,7 +11,6 @@ function StudentDashboard() {
     const [events, setEvents] = useState([]);
     const [filteredEvents, setFilteredEvents] = useState([]);
     const [registeredEvents, setRegisteredEvents] = useState([]);
-    const [selectedEvent, setSelectedEvent] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -54,10 +53,6 @@ function StudentDashboard() {
         } catch (error) {
             console.error("Error fetching events:", error);
         }
-    };
-
-    const handleViewDetails = (event) => {
-        setSelectedEvent(event);
     };
 
     const handleRegister = async (eventId) => {
@@ -107,7 +102,6 @@ function StudentDashboard() {
                         <EventCard
                             key={event.id}
                             event={event}
-                            onViewDetails={handleViewDetails}
                         />
                     ))}
                 </ul>
@@ -118,21 +112,10 @@ function StudentDashboard() {
                         <EventCard
                             key={event.id}
                             event={event}
-                            onViewDetails={handleViewDetails}
                             onRegister={handleRegister}
                         />
                     ))}
                 </ul>
-
-                {selectedEvent && (
-                    <div style={styles.detailsContainer}>
-                        <h3>Event Details</h3>
-                        <p><strong>Category:</strong> {selectedEvent.category || "N/A"}</p>
-                        <p><strong>Description:</strong> {selectedEvent.description || "No description available."}</p>
-                        <p><strong>Location:</strong> {selectedEvent.location || "Unknown"}</p>
-                        <p><strong>Date:</strong> {selectedEvent.date || "TBD"}</p>
-                    </div>
-                )}
 
             </div>
         </div>

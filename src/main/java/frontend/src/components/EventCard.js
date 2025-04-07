@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import sampleEventImage from "../assets/sampleEventImage.jpg";
+import EventDetailOverlay from "./EventDetailOverlay";
 
 const placeholderImage = sampleEventImage;
 
-// Map each category to a unique color
 const categoryColors = {
     "Academic": "#6a1b9a",
     "Career / Professional Development": "#1565c0",
@@ -27,57 +27,60 @@ const categoryColors = {
     "Alumni Events": "#8e24aa"
 };
 
-const EventCard = ({ event, onViewDetails, onRegister }) => {
+const EventCard = ({ event, onRegister }) => {
     const tagColor = categoryColors[event.category] || "#9e9e9e";
+    const [showDetails, setShowDetails] = useState(false);
 
     return (
-        <li style={styles.card} className="event-card">
-            <div style={{ position: "relative" }}>
-                <img
-                    src={event.imageURL || placeholderImage}
-                    alt={event.title || "Event"}
-                    style={styles.image}
-                />
-                {event.category && (
-                    <span
-                        style={{
-                            ...styles.tag,
-                            backgroundColor: tagColor
-                        }}
-                    >
-                        {event.category}
-                    </span>
-                )}
-            </div>
-            <div style={styles.body}>
-                <h3 style={styles.title}>{event.title || "Untitled Event"}</h3>
-                <p style={styles.meta}><strong>Location:</strong> {event.location || "TBD"}</p>
-                <p style={styles.meta}><strong>Date:</strong> {event.date || "TBD"}</p>
-            </div>
-            <div style={styles.actions}>
-                <button onClick={() => onViewDetails(event)} style={styles.viewBtn}>
-                    View Details
-                </button>
-                {onRegister && event.verified ? (
-                    <button onClick={() => onRegister(event.id)} style={styles.registerBtn}>
-                        Register
+        <>
+            <li style={styles.card} className="event-card">
+                <div style={{ position: "relative" }}>
+                    <img
+                        src={event.imageURL || placeholderImage}
+                        alt={event.title || "Event"}
+                        style={styles.image}
+                    />
+                    {event.category && (
+                        <span style={{ ...styles.tag, backgroundColor: tagColor }}>
+              {event.category}
+            </span>
+                    )}
+                </div>
+                <div style={styles.body}>
+                    <h3 style={styles.title}>{event.title || "Untitled Event"}</h3>
+                    <p style={styles.meta}><strong>Location:</strong> {event.location || "TBD"}</p>
+                    <p style={styles.meta}><strong>Date:</strong> {event.date || "TBD"}</p>
+                </div>
+                <div style={styles.actions}>
+                    <button onClick={() => setShowDetails(true)} style={styles.viewBtn}>
+                        View Details
                     </button>
-                ) : onRegister ? (
-                    <span style={styles.awaiting}>Awaiting Verification</span>
-                ) : null}
-            </div>
-            <style>
-                {`
-                .event-card {
-                    transition: transform 0.2s ease, box-shadow 0.2s ease;
-                }
-                .event-card:hover {
-                    transform: translateY(-4px) scale(1.02);
-                    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-                }
-                `}
-            </style>
-        </li>
+                    {onRegister && event.verified ? (
+                        <button onClick={() => onRegister(event.id)} style={styles.registerBtn}>
+                            Register
+                        </button>
+                    ) : onRegister ? (
+                        <span style={styles.awaiting}>Awaiting Verification</span>
+                    ) : null}
+                </div>
+
+                <style>
+                    {`
+            .event-card {
+              transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+            .event-card:hover {
+              transform: translateY(-4px) scale(1.02);
+              box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            }
+          `}
+                </style>
+            </li>
+
+            {showDetails && (
+                <EventDetailOverlay event={event} onClose={() => setShowDetails(false)} />
+            )}
+        </>
     );
 };
 
