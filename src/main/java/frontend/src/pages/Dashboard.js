@@ -16,6 +16,8 @@ function DashboardPage() {
 
     useEffect(() => {
         const storedRole = localStorage.getItem('userRole');
+        console.log("Loaded userRole from localStorage:", storedRole); // ← debug log
+
         if (!storedRole) {
             navigate('/login');
         } else {

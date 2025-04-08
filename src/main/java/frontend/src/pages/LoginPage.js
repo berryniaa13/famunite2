@@ -41,7 +41,8 @@ function LoginPage() {
             }
 
             // Get role from Firestore via helper
-            const userRole = await authService.getUserRoleByEmail(user.email);
+            //const userRole = await authService.getUserRoleByEmail(user.email);
+            const userRole = userData.role;
             console.log("User role:", userRole);
 
             if (!userRole) {
