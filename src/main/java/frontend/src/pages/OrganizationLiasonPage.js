@@ -10,6 +10,8 @@ import {
     doc
 } from "firebase/firestore";
 import { auth, firestore } from "../context/firebaseConfig";
+import SideNavbar from "../components/SideNavbar";
+import famUniteLogo from "../assets/FAMUniteLogoNude.png";
 
 function OrganizationLiaisonDashboard() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -120,7 +122,12 @@ function OrganizationLiaisonDashboard() {
 
     return (
         <div style={styles.container}>
-            <h2>Organization Liaison Dashboard</h2>
+            <SideNavbar />
+            <div style={{ marginLeft: "250px" }}>
+                <div style={styles.headerContainer}>
+                    <img src={famUniteLogo} alt="FAMUnite Logo" style={styles.logo} />
+                    <h2 style={styles.header}>Home </h2>
+                </div>
 
             <input
                 type="text"
@@ -199,14 +206,39 @@ function OrganizationLiaisonDashboard() {
 
             <button onClick={handleLogout} style={styles.logoutButton}>Logout</button>
         </div>
+        </div>
     );
 }
 
 const styles = {
-    container: { textAlign: "center", padding: "20px", maxWidth: "700px", margin: "0 auto", backgroundColor: "#F2EBE9" },
+    container: {
+        textAlign: "center",
+        padding: "20px",
+        backgroundColor: "#F2EBE9"
+    },
     searchBar: { padding: "8px", width: "90%", marginBottom: "20px" },
     section: { marginBottom: "30px" },
     input: { padding: "8px", margin: "5px", width: "90%" },
+    headerContainer: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "10px",
+        marginBottom: "20px"
+    },
+    logo: {
+        width: "50px",
+        height: "50px",
+    },
+    header: {
+        fontSize: "24px",
+        fontWeight: "bold",
+    },
+    subHeader: {
+        fontSize: "18px",
+        fontWeight: "bold",
+        textAlign: "left",
+    },
     button: {
         padding: "10px 20px",
         backgroundColor: "#CDE0CA",
