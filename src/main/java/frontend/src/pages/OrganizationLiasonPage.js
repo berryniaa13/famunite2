@@ -290,16 +290,18 @@ const styles = {
 
 export default OrganizationLiaisonDashboard;
 */
+/*
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signOut } from "firebase/auth";
+import { signOut, updateProfile } from "firebase/auth"; // Added updateProfile
 import {
     collection,
     getDocs,
     addDoc,
     updateDoc,
     deleteDoc,
-    doc
+    doc,
+    setDoc // Added setDoc for upserting a document
 } from "firebase/firestore";
 import { auth, firestore } from "../context/firebaseConfig";
 
@@ -317,37 +319,24 @@ function OrganizationLiaisonDashboard() {
     });
     const [view, setView] = useState("dashboard"); // 'dashboard' or 'profile'
     const [userData, setUserData] = useState(null);
+    const [profileEdit, setProfileEdit] = useState({ displayName: "" });
 
     const navigate = useNavigate();
 
     useEffect(() => {
         const user = auth.currentUser;
         if (user) {
+            const displayName = user.displayName || "No name set";
             setUserData({
                 uid: user.uid,
                 email: user.email,
-                displayName: user.displayName || "No name set"
+                displayName
             });
+            setProfileEdit({ displayName });
         }
         fetchEvents();
     }, []);
 
-    /*
-    const fetchEvents = async () => {
-        try {
-            const eventsRef = collection(firestore, "Event");
-            const snapshot = await getDocs(eventsRef);
-            const eventsList = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setEvents(eventsList);
-            setFilteredEvents(eventsList);
-        } catch (error) {
-            console.error("Error fetching events:", error);
-        }
-    };
-     */
     const fetchEvents = async () => {
         try {
             const user = auth.currentUser;
@@ -356,9 +345,10 @@ function OrganizationLiaisonDashboard() {
             const eventsRef = collection(firestore, "Event");
             const snapshot = await getDocs(eventsRef);
 
+            // Only show events created by the current user
             const userEvents = snapshot.docs
                 .map(doc => ({ id: doc.id, ...doc.data() }))
-                .filter(event => event.createdBy === user.uid); // ✅ only show user's events
+                .filter(event => event.createdBy === user.uid);
 
             setEvents(userEvents);
             setFilteredEvents(userEvents);
@@ -366,7 +356,6 @@ function OrganizationLiaisonDashboard() {
             console.error("Error fetching events:", error);
         }
     };
-
 
     const handleSearch = (e) => {
         const term = e.target.value.toLowerCase();
@@ -431,6 +420,322 @@ function OrganizationLiaisonDashboard() {
             setSelectedEvent(null);
         } catch (error) {
             console.error("Error deleting event:", error);
+        }
+    };
+
+    // New function to update the user's profile information in Firestore and Firebase Auth.
+    const handleProfileUpdate = async () => {
+        try {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            // Update or create the user document in the "Users" collection
+            const userDocRef = doc(firestore, "Users", user.uid);
+            await setDoc(userDocRef, { displayName: profileEdit.displayName }, { merge: true });
+
+            // Optionally update the Firebase Auth profile as well
+            await updateProfile(user, { displayName: profileEdit.displayName });
+            setUserData({ ...userData, displayName: profileEdit.displayName });
+
+            alert("Profile updated successfully.");
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            alert("There was an error updating your profile.");
+        }
+    };
+
+    const handleLogout = async () => {
+        await signOut(auth);
+        navigate("/login");
+    };
+
+    return (
+        <div style={styles.pageWrapper}>
+            <div style={styles.sidebar}>
+                <h3 style={styles.sidebarHeader}>FAMUnite</h3>
+                <button style={styles.navButton} onClick={() => setView("dashboard")}>Dashboard</button>
+                <button style={styles.navButton} onClick={() => setView("profile")}>Profile</button>
+                <button style={styles.logoutButton} onClick={handleLogout}>Logout</button>
+            </div>
+
+            <div style={styles.mainContent}>
+                {view === "dashboard" && (
+                    <>
+                        <h2>Organization Liaison Dashboard</h2>
+
+                        <input
+                            type="text"
+                            placeholder="Search events..."
+                            value={searchTerm}
+                            onChange={handleSearch}
+                            style={styles.searchBar}
+                        />
+
+                        <div style={styles.section}>
+                            <h3>Create New Event</h3>
+                            {['title', 'category', 'description', 'location'].map(field => (
+                                <input
+                                    key={field}
+                                    type="text"
+                                    placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                                    value={newEvent[field]}
+                                    onChange={(e) => setNewEvent({ ...newEvent, [field]: e.target.value })}
+                                    style={styles.input}
+                                />
+                            ))}
+                            <input
+                                type="date"
+                                value={newEvent.date}
+                                onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                                style={styles.input}
+                            />
+                            <button onClick={handleCreateEvent} style={styles.button}>
+                                Create Event
+                            </button>
+                        </div>
+
+                        <ul style={styles.list}>
+                            {filteredEvents.map((event) => (
+                                <li key={event.id} style={styles.listItem}>
+                                    <div>
+                                        <h4>{event.title}</h4>
+                                        <p>{event.date}</p>
+                                    </div>
+                                    <div>
+                                        <button onClick={() => setSelectedEvent(event)} style={styles.smallButton}>
+                                            Edit
+                                        </button>
+                                        <button onClick={() => handleDeleteEvent(event.id)} style={styles.smallButtonRed}>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+
+                        {selectedEvent && (
+                            <div style={styles.section}>
+                                <h3>Edit Event</h3>
+                                {['title', 'category', 'description', 'location'].map(field => (
+                                    <input
+                                        key={field}
+                                        type="text"
+                                        placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                                        value={selectedEvent[field]}
+                                        onChange={(e) => setSelectedEvent({ ...selectedEvent, [field]: e.target.value })}
+                                        style={styles.input}
+                                    />
+                                ))}
+                                <input
+                                    type="date"
+                                    value={selectedEvent.date}
+                                    onChange={(e) => setSelectedEvent({ ...selectedEvent, date: e.target.value })}
+                                    style={styles.input}
+                                />
+                                <button onClick={handleEditEvent} style={styles.button}>
+                                    Update Event
+                                </button>
+                            </div>
+                        )}
+                    </>
+                )}
+
+                {view === "profile" && userData && (
+                    <div style={styles.section}>
+                        <h2>My Profile</h2>
+                        <label>
+                            <strong>Name:</strong>
+                            <input
+                                type="text"
+                                value={profileEdit.displayName}
+                                onChange={(e) =>
+                                    setProfileEdit({ ...profileEdit, displayName: e.target.value })
+                                }
+                                style={styles.input}
+                            />
+                        </label>
+                        <p><strong>Email:</strong> {userData.email}</p>
+                        <p><strong>UID:</strong> {userData.uid}</p>
+                        <button onClick={handleProfileUpdate} style={styles.button}>
+                            Update Profile
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+export default OrganizationLiaisonDashboard;
+*/
+
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import {
+    collection,
+    getDocs,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    doc,
+    setDoc
+} from "firebase/firestore";
+import { auth, firestore } from "../context/firebaseConfig";
+
+function OrganizationLiaisonDashboard() {
+    const [searchTerm, setSearchTerm] = useState("");
+    const [events, setEvents] = useState([]);
+    const [filteredEvents, setFilteredEvents] = useState([]);
+    const [selectedEvent, setSelectedEvent] = useState(null);
+    const [newEvent, setNewEvent] = useState({
+        title: "",
+        category: "",
+        description: "",
+        location: "",
+        date: ""
+    });
+    const [view, setView] = useState("dashboard"); // 'dashboard' or 'profile'
+    const [userData, setUserData] = useState(null);
+
+    // Extend profile state to include organizationName.
+    const [profileEdit, setProfileEdit] = useState({
+        displayName: "",
+        organizationName: ""
+    });
+
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const user = auth.currentUser;
+        if (user) {
+            // Initialize userData.
+            setUserData({
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || "No name set",
+                organizationName: "No organization set" // default value
+            });
+            setProfileEdit({
+                displayName: user.displayName || "",
+                organizationName: ""
+            });
+        }
+        fetchEvents();
+    }, []);
+
+    const fetchEvents = async () => {
+        try {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            const eventsRef = collection(firestore, "Event");
+            const snapshot = await getDocs(eventsRef);
+
+            // Only show events created by the current user
+            const userEvents = snapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() }))
+                .filter(event => event.createdBy === user.uid);
+
+            setEvents(userEvents);
+            setFilteredEvents(userEvents);
+        } catch (error) {
+            console.error("Error fetching events:", error);
+        }
+    };
+
+    const handleSearch = (e) => {
+        const term = e.target.value.toLowerCase();
+        setSearchTerm(term);
+        const filtered = events.filter(event =>
+            event.title?.toLowerCase().includes(term)
+        );
+        setFilteredEvents(filtered);
+        setSelectedEvent(null);
+    };
+
+    const handleCreateEvent = async () => {
+        if (!newEvent.title || !newEvent.date) {
+            alert("Title and Date are required.");
+            return;
+        }
+
+        try {
+            const user = auth.currentUser;
+            const eventToCreate = {
+                ...newEvent,
+                createdBy: user?.uid || null,
+                createdAt: new Date().toISOString()
+            };
+
+            const docRef = await addDoc(collection(firestore, "Event"), eventToCreate);
+            const createdEvent = { id: docRef.id, ...eventToCreate };
+            const updated = [...events, createdEvent];
+            setEvents(updated);
+            setFilteredEvents(updated);
+            setNewEvent({ title: "", category: "", description: "", location: "", date: "" });
+        } catch (error) {
+            console.error("Error creating event:", error);
+            alert("You do not have permission to create events.");
+        }
+    };
+
+    const handleEditEvent = async () => {
+        if (!selectedEvent?.id) return;
+
+        try {
+            const eventRef = doc(firestore, "Event", selectedEvent.id);
+            await updateDoc(eventRef, selectedEvent);
+
+            const updated = events.map(event =>
+                event.id === selectedEvent.id ? selectedEvent : event
+            );
+            setEvents(updated);
+            setFilteredEvents(updated);
+            setSelectedEvent(null);
+        } catch (error) {
+            console.error("Error updating event:", error);
+        }
+    };
+
+    const handleDeleteEvent = async (eventId) => {
+        try {
+            await deleteDoc(doc(firestore, "Event", eventId));
+            const updated = events.filter(event => event.id !== eventId);
+            setEvents(updated);
+            setFilteredEvents(updated);
+            setSelectedEvent(null);
+        } catch (error) {
+            console.error("Error deleting event:", error);
+        }
+    };
+
+    // Update profile to save both displayName and organizationName.
+    const handleProfileUpdate = async () => {
+        try {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            const userDocRef = doc(firestore, "Users", user.uid);
+            await setDoc(
+                userDocRef,
+                {
+                    displayName: profileEdit.displayName,
+                    organizationName: profileEdit.organizationName
+                },
+                { merge: true }
+            );
+
+            setUserData({
+                ...userData,
+                displayName: profileEdit.displayName,
+                organizationName: profileEdit.organizationName || userData.organizationName
+            });
+
+            alert("Profile updated successfully.");
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            alert("There was an error updating your profile.");
         }
     };
 
@@ -535,7 +840,34 @@ function OrganizationLiaisonDashboard() {
                         <h2>My Profile</h2>
                         <p><strong>Name:</strong> {userData.displayName}</p>
                         <p><strong>Email:</strong> {userData.email}</p>
-                        <p><strong>UID:</strong> {userData.uid}</p>
+                        <p><strong>Organization Name:</strong> {userData.organizationName}</p>
+                        <hr style={{ margin: "20px 0" }} />
+                        <h3>Update Your Profile</h3>
+                        <label>
+                            <strong>Name:</strong>
+                            <input
+                                type="text"
+                                value={profileEdit.displayName}
+                                onChange={(e) =>
+                                    setProfileEdit({ ...profileEdit, displayName: e.target.value })
+                                }
+                                style={styles.input}
+                            />
+                        </label>
+                        <label>
+                            <strong>Organization Name:</strong>
+                            <input
+                                type="text"
+                                value={profileEdit.organizationName}
+                                onChange={(e) =>
+                                    setProfileEdit({ ...profileEdit, organizationName: e.target.value })
+                                }
+                                style={styles.input}
+                            />
+                        </label>
+                        <button onClick={handleProfileUpdate} style={styles.button}>
+                            Update Profile
+                        </button>
                     </div>
                 )}
             </div>
@@ -656,3 +988,4 @@ const styles = {
 };
 
 export default OrganizationLiaisonDashboard;
+

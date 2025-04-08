@@ -235,6 +235,7 @@ function SignUpPage() {
                 role: role,
                 contact_info: contactInfo,
                 name: name,
+                organizationName: role === "Organization Liaison" ? organization : "",
                 status: "Active",
                 interests: interests,
                 created_at: serverTimestamp(),
