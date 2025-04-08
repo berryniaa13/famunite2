@@ -6,6 +6,7 @@ import { auth, firestore } from '../context/firebaseConfig';
 import SideNavbar from "../components/SideNavbar";
 import famUniteLogo from "../assets/FAMUniteLogoNude.png";
 import EventCard from "../components/EventCard";
+import EventCardRectangular from "../components/EventCardRectangular";
 
 function StudentDashboard() {
     const [events, setEvents] = useState([]);
@@ -99,7 +100,7 @@ function StudentDashboard() {
                 <h2 style={styles.subHeader}> Upcoming Events</h2>
                 <ul style={styles.horizontalList}>
                     {registeredEvents.map((event) => (
-                        <EventCard
+                        <EventCardRectangular
                             key={event.id}
                             event={event}
                         />
