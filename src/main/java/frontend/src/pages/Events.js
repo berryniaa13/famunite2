@@ -347,12 +347,14 @@ function Events() {
                 {selectedEvent && (
                     <div style={styles.detailsContainer}>
                         <h3>Event Details</h3>
+                        <p><strong>Organization:</strong> {selectedEvent.organization || "Not specified"}</p>
                         <p><strong>Category:</strong> {selectedEvent.category || "N/A"}</p>
                         <p><strong>Description:</strong> {selectedEvent.description || "No description available."}</p>
                         <p><strong>Location:</strong> {selectedEvent.location || "Unknown"}</p>
                         <p><strong>Date:</strong> {selectedEvent.date || "TBD"}</p>
                     </div>
                 )}
+
 
             </div>
         </div>
