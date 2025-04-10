@@ -572,6 +572,7 @@ export default OrganizationLiaisonDashboard;
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
+import { getDoc } from "firebase/firestore"; // Add this import
 import {
     collection,
     getDocs,
@@ -607,20 +608,34 @@ function OrganizationLiaisonDashboard() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const user = auth.currentUser;
-        if (user) {
-            // Initialize userData.
-            setUserData({
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName || "No name set",
-                organizationName: "No organization set" // default value
-            });
-            setProfileEdit({
-                displayName: user.displayName || "",
-                organizationName: ""
-            });
-        }
+        const fetchUserData = async () => {
+            const user = auth.currentUser;
+            if (user) {
+                try {
+                    const userDocRef = doc(firestore, "User", user.uid); // use the correct collection name here!
+                    const userDocSnap = await getDoc(userDocRef);
+
+                    if (userDocSnap.exists()) {
+                        const data = userDocSnap.data();
+                        setUserData({
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: data.name || "No name set",
+                            organizationName: data.organizationName || "No organization set"
+                        });
+
+                        setProfileEdit({
+                            displayName: data.name || "",
+                            organizationName: data.organizationName || ""
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error fetching user data:", error);
+                }
+            }
+        };
+
+        fetchUserData();
         fetchEvents();
     }, []);
 
@@ -662,10 +677,17 @@ function OrganizationLiaisonDashboard() {
 
         try {
             const user = auth.currentUser;
+            if (!user) return;
+
+            const userDocRef = doc(firestore, "User", user.uid);
+            const userSnap = await getDoc(userDocRef);
+            const userData = userSnap.exists() ? userSnap.data() : {};
+
             const eventToCreate = {
                 ...newEvent,
-                createdBy: user?.uid || null,
-                createdAt: new Date().toISOString()
+                createdBy: user.uid,
+                createdAt: new Date().toISOString(),
+                organizationName: userData.organizationName || "Unknown"
             };
 
             const docRef = await addDoc(collection(firestore, "Event"), eventToCreate);
@@ -679,6 +701,7 @@ function OrganizationLiaisonDashboard() {
             alert("You do not have permission to create events.");
         }
     };
+
 
     const handleEditEvent = async () => {
         if (!selectedEvent?.id) return;
@@ -716,7 +739,7 @@ function OrganizationLiaisonDashboard() {
             const user = auth.currentUser;
             if (!user) return;
 
-            const userDocRef = doc(firestore, "Users", user.uid);
+            const userDocRef = doc(firestore, "User", user.uid);
             await setDoc(
                 userDocRef,
                 {
