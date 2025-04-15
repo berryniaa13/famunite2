@@ -27,7 +27,7 @@ const categoryColors = {
     "Alumni Events": "#8e24aa"
 };
 
-const EventCardRectangular = ({ event, onRegister }) => {
+const EventCardRectangular = ({ event, onRegister, onUnregister }) => {
     const tagColor = categoryColors[event.category] || "#9e9e9e";
     const [showDetails, setShowDetails] = useState(false);
 
@@ -41,8 +41,8 @@ const EventCardRectangular = ({ event, onRegister }) => {
                         style={styles.image}
                     />
                     <span style={{ ...styles.tag, backgroundColor: tagColor }}>
-                      {event.category}
-                    </span>
+            {event.category}
+          </span>
                     <div style={styles.right}>
                         <h3 style={styles.title}>{event.title || "Untitled Event"}</h3>
                         <p style={styles.meta}><strong>Date:</strong> {event.date || "TBD"}</p>
@@ -51,40 +51,23 @@ const EventCardRectangular = ({ event, onRegister }) => {
                             <button onClick={() => setShowDetails(true)} style={styles.viewBtn}>
                                 View Details
                             </button>
-                            {onRegister && event.verified ? (
+                            {onRegister && event.verified && !event.suspended ? (
                                 <button onClick={() => onRegister(event.id)} style={styles.registerBtn}>
                                     Register
                                 </button>
+                            ) : onRegister && event.suspended ? (
+                                <span style={styles.awaiting}>Event Suspended</span>
                             ) : onRegister ? (
                                 <span style={styles.awaiting}>Awaiting Verification</span>
                             ) : null}
+                            {onUnregister && (
+                                <button onClick={onUnregister} style={styles.unregisterBtn}>
+                                    Unregister
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
-
-                <style>
-                    {`
-            .event-card-rect {
-              transition: transform 0.2s ease, box-shadow 0.2s ease;
-            }
-            .event-card-rect:hover {
-              transform: translateY(-2px) scale(1.01);
-              box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            }
-            @media (max-width: 600px) {
-              .event-card-rect .event-content {
-                flex-direction: column;
-              }
-              .event-card-rect img {
-                width: 100% !important;
-                height: 160px !important;
-                border-radius: 0 !important;
-                border-top-left-radius: 10px !important;
-                border-top-right-radius: 10px !important;
-              }
-            }
-          `}
-                </style>
             </li>
 
             {showDetails && (

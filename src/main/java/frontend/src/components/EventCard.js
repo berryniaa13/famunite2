@@ -55,26 +55,16 @@ const EventCard = ({ event, onRegister }) => {
                     <button onClick={() => setShowDetails(true)} style={styles.viewBtn}>
                         View Details
                     </button>
-                    {onRegister && event.verified ? (
+                    {onRegister && event.verified && !event.suspended ? (
                         <button onClick={() => onRegister(event.id)} style={styles.registerBtn}>
                             Register
                         </button>
+                    ) : onRegister && event.suspended ? (
+                        <span style={styles.awaiting}>Event Suspended</span>
                     ) : onRegister ? (
                         <span style={styles.awaiting}>Awaiting Verification</span>
                     ) : null}
                 </div>
-
-                <style>
-                    {`
-            .event-card {
-              transition: transform 0.2s ease, box-shadow 0.2s ease;
-            }
-            .event-card:hover {
-              transform: translateY(-4px) scale(1.02);
-              box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-            }
-          `}
-                </style>
             </li>
 
             {showDetails && (
@@ -162,3 +152,4 @@ const styles = {
 };
 
 export default EventCard;
+

@@ -8,6 +8,7 @@ import {
      serverTimestamp,
      doc,
      getDoc,
+    deleteDoc,
      query,
      where
  } from "firebase/firestore";
@@ -119,18 +120,34 @@ import {
              alert("You must be logged in to register.");
              return;
          }
+
          try {
              const eventRef = doc(firestore, "Event", eventId);
              const eventSnap = await getDoc(eventRef);
-             if (!eventSnap.exists() || !eventSnap.data().verified) {
+
+             if (!eventSnap.exists()) {
+                 alert("This event does not exist.");
+                 return;
+             }
+
+             const eventData = eventSnap.data();
+
+             if (!eventData.verified) {
                  alert("This event is not verified yet.");
                  return;
              }
+
+             if (eventData.status === "Suspended") {
+                 alert("This event is currently suspended and cannot be registered for.");
+                 return;
+             }
+
              await addDoc(collection(firestore, "Registrations"), {
                  userId: user.uid,
                  eventId: eventId,
                  timestamp: serverTimestamp()
              });
+
              alert("You have successfully registered for the event!");
          } catch (error) {
              console.error("Registration failed:", error);
