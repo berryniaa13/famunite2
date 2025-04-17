@@ -6,6 +6,7 @@ import {
     getDocs,
     addDoc,
     serverTimestamp,
+    deleteDoc,
     doc,
     getDoc,
     updateDoc,
@@ -26,6 +27,7 @@ function Events() {
     const [organizationOptions, setOrganizationOptions] = useState([]);
     const [role, setRole] = useState(null);
     const navigate = useNavigate();
+
 
     useEffect(() => {
         fetchEvents();
@@ -189,6 +191,45 @@ function Events() {
         }
     };
 
+    const handleUnsaveEvent = async (eventId) => {
+        const user = auth.currentUser;
+        if (!user) {
+            alert("You must be logged in to unsave an event.");
+            return;
+        }
+
+        try {
+            const savedEventsQuery = query(
+                collection(firestore, "SavedEvents"),
+                where("userId", "==", user.uid),
+                where("eventId", "==", eventId)
+            );
+
+            const snapshot = await getDocs(savedEventsQuery);
+
+            if (snapshot.empty) {
+                alert("Event was not found in saved events.");
+                return;
+            }
+
+            // ✅ Proper deletion
+            const deletions = snapshot.docs.map((docSnap) => deleteDoc(docSnap.ref));
+            await Promise.all(deletions);
+
+            // ✅ Update local state to reflect removal
+            setSavedEvents((prev) => prev.filter((event) => event.id !== eventId));
+
+            alert("Event unsaved!");
+        } catch (error) {
+            console.error("Unsave failed:", error);
+            alert("Failed to unsave event.");
+        }
+    };
+
+
+
+
+
     const handleLogout = async () => {
         await signOut(auth);
         navigate("/login");
@@ -226,13 +267,21 @@ function Events() {
                             <ul style={styles.list}>
                                 {savedEvents.map((event) => (
                                     <li key={event.id} style={styles.listItem}>
-                                        <div style={{ flex: 1 }}>
+                                        <div style={{flex: 1}}>
                                             <h3>{event.title || "Untitled Event"}</h3>
                                             <p>{event.date}</p>
                                         </div>
-                                        <button onClick={() => handleViewDetails(event)} style={styles.button}>
-                                            View Details
-                                        </button>
+                                        <div style={{display: "flex", gap: "10px"}}>
+                                            <button onClick={() => handleViewDetails(event)} style={styles.button}>
+                                                View Details
+                                            </button>
+                                            <button
+                                                onClick={() => handleUnsaveEvent(event.id)}
+                                                style={{...styles.button, backgroundColor: "#BF6319", color: "white"}}
+                                            >
+                                                Unsave
+                                            </button>
+                                        </div>
                                     </li>
                                 ))}
                             </ul>
@@ -275,48 +324,42 @@ function Events() {
                 )}
 
                 {/* Events */}
-                {/* Show event list only for non-admins */}
-                {role !== "Admin" && (
-                    <>
-                        <h2 style={styles.header}>Events</h2>
-                        <div style={scrollStyles.container}>
-                            <ul style={scrollStyles.cardRow}>
-                                {filteredEvents.map((event) => (
-                                    <li key={event.id} style={scrollStyles.cardItem}>
-                                        <div style={{ flex: 1 }}>
-                                            <h3>{event.title || "Untitled Event"}</h3>
-                                        </div>
-                                        <div style={{ display: "flex", gap: "10px" }}>
-                                            <button onClick={() => handleViewDetails(event)} style={styles.button}>
-                                                View Details
-                                            </button>
-                                            {event.verified ? (
-                                                <>
-                                                    <button
-                                                        onClick={() => handleRegister(event.id)}
-                                                        style={{ ...styles.button, backgroundColor: "#12491B", color: "white" }}
-                                                    >
-                                                        Register
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleSaveEvent(event.id)}
-                                                        style={{ ...styles.button, backgroundColor: "#FFA500", color: "white" }}
-                                                    >
-                                                        Save
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <span style={{ color: "gray", fontSize: "12px", alignSelf: "center" }}>
-                  Awaiting Verification
-                </span>
-                                            )}
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </>
-                )}
+                <h2 style={styles.header}>Events</h2>
+                <ul style={styles.list}>
+                    {filteredEvents.map((event) => (
+                        <li key={event.id} style={styles.listItem}>
+                            <div style={{ flex: 1 }}>
+                                <h3>{event.title || "Untitled Event"}</h3>
+                            </div>
+                            <div style={{ display: "flex", gap: "10px" }}>
+                                <button onClick={() => handleViewDetails(event)} style={styles.button}>
+                                    View Details
+                                </button>
+                                {event.verified ? (
+                                    <>
+                                        <button
+                                            onClick={() => handleRegister(event.id)}
+                                            style={{ ...styles.button, backgroundColor: "#12491B", color: "white" }}
+                                        >
+                                            Register
+                                        </button>
+                                        <button
+                                            onClick={() => handleSaveEvent(event.id)}
+                                            style={{ ...styles.button, backgroundColor: "#FFA500", color: "white" }}
+                                        >
+                                            Save
+                                        </button>
+                                    </>
+                                ) : (
+                                    <span style={{ color: "gray", fontSize: "12px", alignSelf: "center" }}>
+                    Awaiting Verification
+                  </span>
+                                )}
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+
                 {selectedEvent && (
                     <div style={styles.detailsContainer}>
                         <h3>Event Details</h3>
@@ -359,30 +402,5 @@ const styles = {
         borderRadius: "10px", backgroundColor: "#e9ecef"
     }
 };
-const scrollStyles = {
-    container: {
-        overflowX: "auto",
-        padding: "10px",
-        margin: "10px 0"
-    },
-    cardRow: {
-        display: "flex",
-        flexDirection: "row",
-        gap: "16px",
-        padding: 0,
-        margin: 0,
-        listStyle: "none"
-    },
-    cardItem: {
-        minWidth: "280px",
-        maxWidth: "300px",
-        padding: "10px",
-        border: "1px solid #ddd",
-        borderRadius: "8px",
-        backgroundColor: "#f9f9f9",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between"
-    }
-};
+
 export default Events;

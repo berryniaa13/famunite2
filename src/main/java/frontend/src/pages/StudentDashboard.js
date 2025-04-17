@@ -180,6 +180,7 @@ function StudentDashboard() {
                 </div>
 
                 <h2 style={styles.subHeader}>Recommended Events</h2>
+                <div style={styles.scrollContainer}>
                 <ul style={styles.horizontalList}>
                     {filteredEvents.map((event) => (
                         <EventCard
@@ -200,17 +201,22 @@ function StudentDashboard() {
                 </ul>
             </div>
         </div>
+        </div>
     );
 }
 
 const styles = {
+    scrollContainer: {
+        overflowX: "auto",
+        whiteSpace: "nowrap", // Prevent stacking
+    },
     container: {
         textAlign: "center",
         padding: "20px",
         backgroundColor: "#F2EBE9"
     },
     horizontalList: {
-        display: "flex",
+        display: "inline-flex",
         overflowX: "auto",
         flexWrap: "nowrap", // <-- important to keep cards in one line
         gap: "16px",

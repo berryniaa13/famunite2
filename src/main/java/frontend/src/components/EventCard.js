@@ -42,8 +42,8 @@ const EventCard = ({ event, onRegister }) => {
                     />
                     {event.category && (
                         <span style={{ ...styles.tag, backgroundColor: tagColor }}>
-              {event.category}
-            </span>
+                            {event.category}
+                        </span>
                     )}
                 </div>
                 <div style={styles.body}>
@@ -55,12 +55,24 @@ const EventCard = ({ event, onRegister }) => {
                     <button onClick={() => setShowDetails(true)} style={styles.viewBtn}>
                         View Details
                     </button>
-                    {onRegister && event.verified && !event.suspended ? (
-                        <button onClick={() => onRegister(event.id)} style={styles.registerBtn}>
-                            Register
-                        </button>
-                    ) : onRegister && event.suspended ? (
-                        <span style={styles.awaiting}>Event Suspended</span>
+
+                    {onRegister && event.verified ? (
+                        event.suspended ? (
+                            <span style={styles.awaiting}>Event Suspended</span>
+                        ) : (
+                            <button
+                                onClick={() => {
+                                    if (event.suspended) {
+                                        alert("This event is currently suspended and cannot accept registrations.");
+                                        return;
+                                    }
+                                    onRegister(event.id);
+                                }}
+                                style={styles.registerBtn}
+                            >
+                                Register
+                            </button>
+                        )
                     ) : onRegister ? (
                         <span style={styles.awaiting}>Awaiting Verification</span>
                     ) : null}
@@ -74,6 +86,7 @@ const EventCard = ({ event, onRegister }) => {
     );
 };
 
+// ✅ Move styles outside the component
 const styles = {
     card: {
         minWidth: "280px",

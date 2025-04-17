@@ -34,39 +34,32 @@ const EventCardRectangular = ({ event, onRegister, onUnregister }) => {
     return (
         <>
             <li style={styles.card} className="event-card-rect">
-                <div className="event-content" style={styles.content}>
+                <div style={{ position: "relative" }}>
                     <img
                         src={event.imageURL || placeholderImage}
-                        alt={event.title}
+                        alt={event.title || "Event"}
                         style={styles.image}
                     />
-                    <span style={{ ...styles.tag, backgroundColor: tagColor }}>
-            {event.category}
-          </span>
-                    <div style={styles.right}>
-                        <h3 style={styles.title}>{event.title || "Untitled Event"}</h3>
-                        <p style={styles.meta}><strong>Date:</strong> {event.date || "TBD"}</p>
-                        <p style={styles.meta}><strong>Location:</strong> {event.location || "TBD"}</p>
-                        <div style={styles.actions}>
-                            <button onClick={() => setShowDetails(true)} style={styles.viewBtn}>
-                                View Details
-                            </button>
-                            {onRegister && event.verified && !event.suspended ? (
-                                <button onClick={() => onRegister(event.id)} style={styles.registerBtn}>
-                                    Register
-                                </button>
-                            ) : onRegister && event.suspended ? (
-                                <span style={styles.awaiting}>Event Suspended</span>
-                            ) : onRegister ? (
-                                <span style={styles.awaiting}>Awaiting Verification</span>
-                            ) : null}
-                            {onUnregister && (
-                                <button onClick={onUnregister} style={styles.unregisterBtn}>
-                                    Unregister
-                                </button>
-                            )}
-                        </div>
-                    </div>
+                    {event.category && (
+                        <span style={{ ...styles.tag, backgroundColor: tagColor }}>
+              {event.category}
+            </span>
+                    )}
+                </div>
+                <div style={styles.body}>
+                    <h3 style={styles.title}>{event.title || "Untitled Event"}</h3>
+                    <p style={styles.meta}><strong>Location:</strong> {event.location || "TBD"}</p>
+                    <p style={styles.meta}><strong>Date:</strong> {event.date || "TBD"}</p>
+                </div>
+                <div style={styles.actions}>
+                    <button onClick={() => setShowDetails(true)} style={styles.viewBtn}>
+                        View Details
+                    </button>
+                    {onUnregister && (
+                        <button onClick={onUnregister} style={styles.unregisterBtn}>
+                            Unregister
+                        </button>
+                    )}
                 </div>
             </li>
 
@@ -79,89 +72,74 @@ const EventCardRectangular = ({ event, onRegister, onUnregister }) => {
 
 const styles = {
     card: {
-        width: "100%",
-        maxWidth: "700px",
-        backgroundColor: "#fff",
+        minWidth: "280px",
+        maxWidth: "300px",
+        padding: "0",
+        borderRadius: "12px",
         border: "1px solid #ccc",
-        borderRadius: "10px",
+        backgroundColor: "#fff",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        marginBottom: "16px",
-        position: "relative"
-    },
-    content: {
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "stretch"
+        position: "relative",
+        flexShrink: 0
     },
     image: {
-        width: "180px",
-        height: "100%",
+        width: "100%",
+        height: "150px",
         objectFit: "cover",
-        borderTopLeftRadius: "10px",
-        borderBottomLeftRadius: "10px"
-    },
-    right: {
-        flex: 1,
-        padding: "16px",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center"
+        borderTopLeftRadius: "12px",
+        borderTopRightRadius: "12px"
     },
     tag: {
         position: "absolute",
         top: "10px",
         right: "10px",
         padding: "4px 8px",
-        borderRadius: "6px",
-        fontSize: "11px",
         color: "#fff",
+        fontSize: "11px",
         fontWeight: "bold",
-        backgroundColor: "#333",
-        zIndex: 10
+        borderRadius: "6px",
+        whiteSpace: "nowrap"
+    },
+    body: {
+        padding: "12px",
+        flex: 1
     },
     title: {
-        fontSize: "18px",
+        fontSize: "16px",
         fontWeight: "600",
-        marginBottom: "6px",
-        justifyContent: "flex-start",
-        textAlign: "left"
+        marginBottom: "8px"
     },
     meta: {
-        fontSize: "13px",
-        color: "#444",
-        marginBottom: "4px",
-        justifyContent: "flex-start",
-        textAlign: "left"
+        fontSize: "12px",
+        color: "#333",
+        marginBottom: "4px"
     },
     actions: {
         display: "flex",
-        justifyContent: "center",
-        gap: "10px",
-        marginTop: "12px"
+        gap: "8px",
+        padding: "12px",
+        borderTop: "1px solid #eee"
     },
     viewBtn: {
-        padding: "8px 12px",
+        flex: 1,
+        padding: "8px",
         backgroundColor: "#CDE0CA",
         border: "none",
-        borderRadius: "6px",
         fontSize: "12px",
+        borderRadius: "6px",
         cursor: "pointer"
     },
-    registerBtn: {
-        padding: "8px 12px",
-        backgroundColor: "#12491B",
-        color: "#fff",
+    unregisterBtn: {
+        flex: 1,
+        padding: "8px",
+        backgroundColor: "#BF6319",
+        color: "white",
         border: "none",
-        borderRadius: "6px",
         fontSize: "12px",
+        borderRadius: "6px",
         cursor: "pointer"
-    },
-    awaiting: {
-        fontSize: "11px",
-        color: "gray",
-        alignSelf: "center"
     }
 };
 
