@@ -157,7 +157,7 @@ function StudentDashboard() {
     return (
         <div style={styles.container}>
             <SideNavbar />
-            <div style={{ marginLeft: "250px" }}>
+            <div style={{marginLeft: "250px"}}>
                 <div style={styles.headerContainer}>
                     <img
                         src={famUniteLogo}
@@ -167,15 +167,17 @@ function StudentDashboard() {
                     <h2 style={styles.header}>Home</h2>
                 </div>
                 <h2 style={styles.subHeader}>Upcoming Events</h2>
-                <ul style={styles.horizontalList}>
-                    {registeredEvents.map((event) => (
-                        <EventCardRectangular
-                            key={event.id}
-                            event={event}
-                            onUnregister={() => handleUnregister(event.id)}
-                        />
-                    ))}
-                </ul>
+                <div style={styles.scrollContainer}>
+                    <ul style={styles.horizontalList}>
+                        {registeredEvents.map((event) => (
+                            <EventCardRectangular
+                                key={event.id}
+                                event={event}
+                                onUnregister={() => handleUnregister(event.id)}
+                            />
+                        ))}
+                    </ul>
+                </div>
 
                 <h2 style={styles.subHeader}>Recommended Events</h2>
                 <ul style={styles.horizontalList}>
@@ -210,11 +212,13 @@ const styles = {
     horizontalList: {
         display: "flex",
         overflowX: "auto",
+        flexWrap: "nowrap", // <-- important to keep cards in one line
         gap: "16px",
-        padding: "10px",
+        padding: "10px 0",
+        marginBottom: "20px",
         listStyle: "none",
-        scrollbarWidth: "none",
-        msOverflowStyle: "none",
+        scrollbarWidth: "thin", // For Firefox
+        msOverflowStyle: "auto", // IE
     },
     headerContainer: {
         display: "flex",
@@ -261,6 +265,8 @@ const styles = {
         borderRadius: "5px",
         marginTop: "10px"
     }
+
+
 };
 
 export default StudentDashboard;

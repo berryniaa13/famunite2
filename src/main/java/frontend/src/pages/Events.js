@@ -279,44 +279,44 @@ function Events() {
                 {role !== "Admin" && (
                     <>
                         <h2 style={styles.header}>Events</h2>
-                        <ul style={styles.list}>
-                            {filteredEvents.map((event) => (
-                                <li key={event.id} style={styles.listItem}>
-                                    <div style={{ flex: 1 }}>
-                                        <h3>{event.title || "Untitled Event"}</h3>
-                                    </div>
-                                    <div style={{ display: "flex", gap: "10px" }}>
-                                        <button onClick={() => handleViewDetails(event)} style={styles.button}>
-                                            View Details
-                                        </button>
-                                        {event.verified ? (
-                                            <>
-                                                <button
-                                                    onClick={() => handleRegister(event.id)}
-                                                    style={{ ...styles.button, backgroundColor: "#12491B", color: "white" }}
-                                                >
-                                                    Register
-                                                </button>
-                                                <button
-                                                    onClick={() => handleSaveEvent(event.id)}
-                                                    style={{ ...styles.button, backgroundColor: "#FFA500", color: "white" }}
-                                                >
-                                                    Save
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <span style={{ color: "gray", fontSize: "12px", alignSelf: "center" }}>
-                Awaiting Verification
-              </span>
-                                        )}
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
+                        <div style={scrollStyles.container}>
+                            <ul style={scrollStyles.cardRow}>
+                                {filteredEvents.map((event) => (
+                                    <li key={event.id} style={scrollStyles.cardItem}>
+                                        <div style={{ flex: 1 }}>
+                                            <h3>{event.title || "Untitled Event"}</h3>
+                                        </div>
+                                        <div style={{ display: "flex", gap: "10px" }}>
+                                            <button onClick={() => handleViewDetails(event)} style={styles.button}>
+                                                View Details
+                                            </button>
+                                            {event.verified ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleRegister(event.id)}
+                                                        style={{ ...styles.button, backgroundColor: "#12491B", color: "white" }}
+                                                    >
+                                                        Register
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleSaveEvent(event.id)}
+                                                        style={{ ...styles.button, backgroundColor: "#FFA500", color: "white" }}
+                                                    >
+                                                        Save
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <span style={{ color: "gray", fontSize: "12px", alignSelf: "center" }}>
+                  Awaiting Verification
+                </span>
+                                            )}
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
                     </>
                 )}
-
-
                 {selectedEvent && (
                     <div style={styles.detailsContainer}>
                         <h3>Event Details</h3>
@@ -359,5 +359,30 @@ const styles = {
         borderRadius: "10px", backgroundColor: "#e9ecef"
     }
 };
-
+const scrollStyles = {
+    container: {
+        overflowX: "auto",
+        padding: "10px",
+        margin: "10px 0"
+    },
+    cardRow: {
+        display: "flex",
+        flexDirection: "row",
+        gap: "16px",
+        padding: 0,
+        margin: 0,
+        listStyle: "none"
+    },
+    cardItem: {
+        minWidth: "280px",
+        maxWidth: "300px",
+        padding: "10px",
+        border: "1px solid #ddd",
+        borderRadius: "8px",
+        backgroundColor: "#f9f9f9",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between"
+    }
+};
 export default Events;
