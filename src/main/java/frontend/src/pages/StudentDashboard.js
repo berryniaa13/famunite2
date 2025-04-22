@@ -156,12 +156,12 @@ function StudentDashboard() {
     };
 
     return (
-        <div style={styles.container}>
+        <div className={"container"}>
             <SideNavbar />
             <div style={{marginLeft: "250px"}}>
                 <Header pageTitle="Home" />
 
-                <h2 style={styles.subHeader}>Upcoming Events</h2>
+                <h2 className={"subHeader"}>Upcoming Events</h2>
                 <div style={styles.scrollContainer}>
                     <ul style={styles.horizontalList}>
                         {registeredEvents.map((event) => (
@@ -174,9 +174,9 @@ function StudentDashboard() {
                     </ul>
                 </div>
 
-                <h2 style={styles.subHeader}>Recommended Events</h2>
+                <h2 className={"subheader"}>Recommended Events</h2>
                 <div style={styles.scrollContainer}>
-                <ul style={styles.horizontalList}>
+                <ul className={"horizontalList"}>
                     {filteredEvents.map((event) => (
                         <EventCard
                             key={event.id}
@@ -201,38 +201,7 @@ function StudentDashboard() {
 }
 
 const styles = {
-        container: {
-        textAlign: "center",
-        padding: "20px",
-        backgroundColor: "#F2EBE9"
-    },
-    horizontalList: {
-        display: "flex",
-        overflowX: "auto",
-        gap: "16px",
-        padding: "10px",
-        listStyle: "none",
-        scrollbarWidth: "none",
-        msOverflowStyle: "none",
-    },
-    logo: {
-        width: "50px",
-        height: "50px",
-    },
-    subHeader: {
-        fontSize: "18px",
-        fontWeight: "bold",
-        textAlign: "left",
-    },
-    button: {
-        padding: "8px 12px",
-        backgroundColor: "#CDE0CA",
-        fontSize: "12px",
-        color: "black",
-        border: "none",
-        cursor: "pointer",
-        borderRadius: "5px"
-    }
+
 
 
 };

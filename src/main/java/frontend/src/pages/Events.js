@@ -16,6 +16,8 @@ import {
 import { auth, firestore } from "../context/firebaseConfig";
 import SideNavbar from "../components/SideNavbar";
 import famUniteLogo from "../assets/FAMUniteLogoNude.png";
+import Header from "../components/Header";
+import SearchBar from "../components/SearchBar";
 
 function Events() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -236,20 +238,15 @@ function Events() {
     };
 
     return (
-        <div style={styles.container}>
+        <div className={"container"}>
             <SideNavbar />
             <div style={{ marginLeft: "250px" }}>
-                <div style={styles.headerContainer}>
-                    <img src={famUniteLogo} alt="FAMUnite Logo" style={styles.logo} />
-                    <h2 style={styles.header}>Events</h2>
-                </div>
+                <Header pageTitle={"Events"}/>
 
-                <input
-                    type="text"
-                    placeholder="Enter event title..."
+                <SearchBar
                     value={searchTerm}
                     onChange={handleSearch}
-                    style={styles.searchBar}
+                    placeholder="Enter event title..."
                 />
                 <select value={selectedOrganization} onChange={handleOrgFilterChange} style={styles.searchBar}>
                     <option value="">Filter by Organization</option>
@@ -377,10 +374,6 @@ function Events() {
 
 const styles = {
     container: { textAlign: "center", padding: "20px", backgroundColor: "#F2EBE9" },
-    searchBar: {
-        padding: "8px", width: "90%", margin: "10px auto", display: "block",
-        borderRadius: "8px", border: "1px solid #ccc"
-    },
     list: { listStyle: "none", padding: "0" },
     headerContainer: {
         display: "flex", alignItems: "center", justifyContent: "center",
