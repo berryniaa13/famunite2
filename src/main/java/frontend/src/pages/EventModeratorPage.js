@@ -8,6 +8,9 @@ import {
     doc
 } from "firebase/firestore";
 import { auth, firestore } from '../context/firebaseConfig';
+import SideNavbar from "../components/SideNavbar";
+import famUniteLogo from "../assets/FAMUniteLogoNude.png";
+import EventCardRectangular from "../components/EventCardRectangular";
 
 function EventModeratorPage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -67,7 +70,12 @@ function EventModeratorPage() {
 
     return (
         <div style={styles.container}>
-            <h2>Event Moderator Dashboard</h2>
+            <SideNavbar />
+            <div style={{ marginLeft: "250px" }}>
+                <div style={styles.headerContainer}>
+                    <img src={famUniteLogo} alt="FAMUnite Logo" style={styles.logo} />
+                    <h2 style={styles.header}>Home </h2>
+                </div>
             <input
                 type="text"
                 placeholder="Search events..."
@@ -75,27 +83,17 @@ function EventModeratorPage() {
                 onChange={handleSearch}
                 style={styles.searchBar}
             />
-            <ul style={styles.list}>
-                {filteredEvents.map((event) => (
-                    <li key={event.id} style={styles.listItem}>
-                        <div style={styles.eventHeader}>
-                            <h3 style={{ marginBottom: 5 }}>{event.title}</h3>
-                            {event.verified && <span style={styles.verifiedTag}>✔ Verified</span>}
-                        </div>
-                        <p>{event.description}</p>
-                        <p><strong>Date:</strong> {event.date}</p>
-                        <label style={styles.checkboxLabel}>
-                            <input
-                                type="checkbox"
-                                checked={!!event.verified}
-                                onChange={() => handleVerifyToggle(event.id, event.verified)}
-                            />{" "}
-                            Mark as Verified
-                        </label>
-                    </li>
-                ))}
-            </ul>
-            <button onClick={handleLogout} style={styles.button}>Logout</button>
+                <ul style={styles.list}>
+                    {filteredEvents.map((event) => (
+                        <EventCardRectangular
+                            key={event.id}
+                            event={event}
+                        />
+                    ))}
+                </ul>
+
+                <button onClick={handleLogout} style={styles.button}>Logout</button>
+        </div>
         </div>
     );
 }
@@ -104,50 +102,61 @@ const styles = {
     container: {
         textAlign: "center",
         padding: "20px",
-        maxWidth: "800px",
-        margin: "0 auto"
+        backgroundColor: "#F2EBE9"
     },
-    searchBar: {
-        padding: "8px",
-        width: "90%",
+    horizontalList: {
+        display: "flex",
+        overflowX: "auto",
+        gap: "16px",
+        padding: "10px",
+        listStyle: "none",
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+    },
+    headerContainer: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "10px",
         marginBottom: "20px"
     },
-    list: {
-        listStyle: "none",
-        padding: "0"
+    logo: {
+        width: "50px",
+        height: "50px",
     },
-    listItem: {
-        padding: "15px",
-        border: "1px solid #ddd",
-        borderRadius: "5px",
-        backgroundColor: "#f9f9f9",
-        marginBottom: "10px",
-        textAlign: "left"
+    header: {
+        fontSize: "24px",
+        fontWeight: "bold",
     },
-    eventHeader: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center"
-    },
-    verifiedTag: {
-        backgroundColor: "#28a745",
-        color: "white",
-        padding: "4px 8px",
-        borderRadius: "12px",
-        fontSize: "12px"
-    },
-    checkboxLabel: {
-        marginTop: "10px",
-        display: "block"
+    subHeader: {
+        fontSize: "18px",
+        fontWeight: "bold",
+        textAlign: "left",
     },
     button: {
-        padding: "10px 20px",
-        backgroundColor: "#007bff",
+        padding: "8px 12px",
+        backgroundColor: "#CDE0CA",
+        fontSize: "12px",
+        color: "black",
+        border: "none",
+        cursor: "pointer",
+        borderRadius: "5px"
+    },
+    detailsContainer: {
+        marginTop: "20px",
+        padding: "15px",
+        border: "1px solid #ddd",
+        borderRadius: "10px",
+        backgroundColor: "#e9ecef"
+    },
+    logoutButton: {
+        padding: "10px",
+        backgroundColor: "#BF6319",
         color: "white",
         border: "none",
-        borderRadius: "5px",
         cursor: "pointer",
-        marginTop: "20px"
+        borderRadius: "5px",
+        marginTop: "10px"
     }
 };
 

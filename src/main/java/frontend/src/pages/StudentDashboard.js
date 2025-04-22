@@ -206,25 +206,19 @@ function StudentDashboard() {
 }
 
 const styles = {
-    scrollContainer: {
-        overflowX: "auto",
-        whiteSpace: "nowrap", // Prevent stacking
-    },
-    container: {
+        container: {
         textAlign: "center",
         padding: "20px",
         backgroundColor: "#F2EBE9"
     },
     horizontalList: {
-        display: "inline-flex",
+        display: "flex",
         overflowX: "auto",
-        flexWrap: "nowrap", // <-- important to keep cards in one line
         gap: "16px",
-        padding: "10px 0",
-        marginBottom: "20px",
+        padding: "10px",
         listStyle: "none",
-        scrollbarWidth: "thin", // For Firefox
-        msOverflowStyle: "auto", // IE
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
     },
     headerContainer: {
         display: "flex",
