@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import sampleEventImage from "../assets/sampleEventImage.jpg";
 import EventDetailOverlay from "./EventDetailOverlay";
+import EventVerifyCard from "./EventVerifyCard";
+import { auth, firestore } from "../context/firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
 
 const placeholderImage = sampleEventImage;
 
@@ -30,6 +33,28 @@ const categoryColors = {
 const EventCard = ({ event, onRegister }) => {
     const tagColor = categoryColors[event.category] || "#9e9e9e";
     const [showDetails, setShowDetails] = useState(false);
+    const [userRole, setUserRole] = useState("");
+    const [userId, setUserId] = useState("");
+
+    useEffect(() => {
+        const fetchUserRole = async () => {
+            const user = auth.currentUser;
+            if (!user) return;
+            setUserId(user.uid);
+            const userRef = doc(firestore, "User", user.uid);
+            const snap = await getDoc(userRef);
+            if (snap.exists()) {
+                setUserRole(snap.data().role);
+            }
+        };
+
+        fetchUserRole();
+    }, []);
+
+    const isPrivileged =
+        userRole === "Admin" ||
+        userRole === "Event Moderator" ||
+        (userRole === "Organization Liaison" && event.organizationId === userId);
 
     return (
         <>
@@ -80,13 +105,16 @@ const EventCard = ({ event, onRegister }) => {
             </li>
 
             {showDetails && (
-                <EventDetailOverlay event={event} onClose={() => setShowDetails(false)} />
+                isPrivileged ? (
+                    <EventVerifyCard event={event} onClose={() => setShowDetails(false)} />
+                ) : (
+                    <EventDetailOverlay event={event} onClose={() => setShowDetails(false)} />
+                )
             )}
         </>
     );
 };
 
-// ✅ Move styles outside the component
 const styles = {
     card: {
         minWidth: "280px",
@@ -165,4 +193,3 @@ const styles = {
 };
 
 export default EventCard;
-

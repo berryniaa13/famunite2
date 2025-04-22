@@ -13,6 +13,7 @@ import famUniteLogo from "../assets/FAMUniteLogoNude.png";
 import EventCardRectangular from "../components/EventCardRectangular";
 import Header from "../components/Header";
 import SearchBar from "../components/SearchBar";
+import EventCard from "../components/EventCard";
 
 
 function EventModeratorPage() {
@@ -79,21 +80,27 @@ function EventModeratorPage() {
                 />
                 <div className={"dashboard-container"}>
                     <div className={"left-column"}>
-                        <ul style={styles.list}>
-                            {filteredEvents.map((event) => (
-                                <EventCardRectangular
-                                    key={event.id}
-                                    event={event}
-                                />
-                            ))}
-                        </ul>
+                        <h3 className={"subHeader"}>Needs Action</h3>
+                        <div className={"horizontalContainer"}>
+                            <ul className={"horizontalList"}>
+                                {filteredEvents.map((event) => (
+                                    <EventCard
+                                        key={event.id}
+                                        event={event}
+                                    />
+                                ))}
+
+                            </ul>
+                        </div>
+                        <h3 className={"subHeader"}>Recent Feedback</h3>
                     </div>
+
                     <div className={"right-column"}>
-                        <h3>Announcements</h3>
-                        <h3>Messages</h3>
+                        <h3 className={"subHeader"}>Announcements</h3>
+
+                        <h3 className={"subHeader"}>Messages</h3>
                     </div>
                 </div>
-
             </div>
         </div>
     );

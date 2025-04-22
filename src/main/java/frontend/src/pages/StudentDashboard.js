@@ -175,27 +175,27 @@ function StudentDashboard() {
                 </div>
 
                 <h2 className={"subheader"}>Recommended Events</h2>
-                <div style={styles.scrollContainer}>
-                <ul className={"horizontalList"}>
-                    {filteredEvents.map((event) => (
-                        <EventCard
-                            key={event.id}
-                            event={event}
-                            onRegister={
-                                !isUserRegistered(event.id)
-                                    ? () => handleRegister(event.id)
-                                    : null
-                            }
-                            onUnregister={
-                                isUserRegistered(event.id)
-                                    ? () => handleUnregister(event.id)
-                                    : null
-                            }
-                        />
-                    ))}
-                </ul>
+                <div className={"horizontalContainer"}>
+                    <ul className={"horizontalList"}>
+                        {filteredEvents.map((event) => (
+                            <EventCard
+                                key={event.id}
+                                event={event}
+                                onRegister={
+                                    !isUserRegistered(event.id)
+                                        ? () => handleRegister(event.id)
+                                        : null
+                                }
+                                onUnregister={
+                                    isUserRegistered(event.id)
+                                        ? () => handleUnregister(event.id)
+                                        : null
+                                }
+                            />
+                        ))}
+                    </ul>
+                </div>
             </div>
-        </div>
         </div>
     );
 }
