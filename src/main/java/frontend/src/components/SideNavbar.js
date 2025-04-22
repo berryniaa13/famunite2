@@ -1,18 +1,51 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import famUniteLogo from "../assets/FAMUniteLogoGreen.png"; // ✅ Import logo
+import { auth, firestore } from "../context/firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
+import famUniteLogo from "../assets/FAMUniteLogoGreen.png";
 
 const SideNavbar = () => {
+    const [role, setRole] = useState("");
+
+    useEffect(() => {
+        const fetchUserRole = async () => {
+            const user = auth.currentUser;
+            if (user) {
+                const userDocRef = doc(firestore, "User", user.uid);
+                const userDoc = await getDoc(userDocRef);
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+                    setRole(data.role); // Assume 'role' field exists in Firestore
+                }
+            }
+        };
+
+        fetchUserRole();
+    }, []);
+
+    const getDashboardRoute = () => {
+        switch (role) {
+            case "Admin":
+                return "/admin-dashboard";
+            case "Student":
+                return "/student-dashboard";
+            case "Organization Liaison":
+                return "/organization-liason-dashboard";
+            case "Event Moderator":
+                return "/event-moderator-dashboard";
+            default:
+                return "/login";
+        }
+    };
+
     return (
         <div style={styles.sidebar}>
-            {/* ✅ Logo at the top */}
             <div style={styles.logoContainer}>
                 <img src={famUniteLogo} alt="FAMUnite Logo" style={styles.logo} />
             </div>
 
-            {/* ✅ Navigation Links */}
             <nav style={styles.nav}>
-                <Link to="/student-dashboard" style={styles.navLink}>Dashboard</Link>
+                <Link to={getDashboardRoute()} style={styles.navLink}>Dashboard</Link>
                 <Link to="/events" style={styles.navLink}>Events</Link>
                 <Link to="/profile" style={styles.navLink}>Profile</Link>
                 <Link to="/messages" style={styles.navLink}>Messages</Link>
@@ -21,6 +54,7 @@ const SideNavbar = () => {
         </div>
     );
 };
+
 
 // ✅ Styles for the sidebar
 const styles = {

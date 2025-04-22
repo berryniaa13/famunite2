@@ -11,6 +11,8 @@ import { auth, firestore } from '../context/firebaseConfig';
 import SideNavbar from "../components/SideNavbar";
 import famUniteLogo from "../assets/FAMUniteLogoNude.png";
 import EventCardRectangular from "../components/EventCardRectangular";
+import Header from "../components/Header";
+
 
 function EventModeratorPage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -72,11 +74,9 @@ function EventModeratorPage() {
         <div style={styles.container}>
             <SideNavbar />
             <div style={{ marginLeft: "250px" }}>
-                <div style={styles.headerContainer}>
-                    <img src={famUniteLogo} alt="FAMUnite Logo" style={styles.logo} />
-                    <h2 style={styles.header}>Home </h2>
-                </div>
-            <input
+                <Header pageTitle="Home" />
+
+                <input
                 type="text"
                 placeholder="Search events..."
                 value={searchTerm}
@@ -113,21 +113,6 @@ const styles = {
         scrollbarWidth: "none",
         msOverflowStyle: "none",
     },
-    headerContainer: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "10px",
-        marginBottom: "20px"
-    },
-    logo: {
-        width: "50px",
-        height: "50px",
-    },
-    header: {
-        fontSize: "24px",
-        fontWeight: "bold",
-    },
     subHeader: {
         fontSize: "18px",
         fontWeight: "bold",
@@ -149,15 +134,6 @@ const styles = {
         borderRadius: "10px",
         backgroundColor: "#e9ecef"
     },
-    logoutButton: {
-        padding: "10px",
-        backgroundColor: "#BF6319",
-        color: "white",
-        border: "none",
-        cursor: "pointer",
-        borderRadius: "5px",
-        marginTop: "10px"
-    }
 };
 
 export default EventModeratorPage;

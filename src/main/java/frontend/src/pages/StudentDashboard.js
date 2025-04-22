@@ -17,6 +17,7 @@ import SideNavbar from "../components/SideNavbar";
 import famUniteLogo from "../assets/FAMUniteLogoNude.png";
 import EventCard from "../components/EventCard";
 import EventCardRectangular from "../components/EventCardRectangular";
+import Header from "../components/Header";
 
 function StudentDashboard() {
     const [filteredEvents, setFilteredEvents] = useState([]);
@@ -158,14 +159,8 @@ function StudentDashboard() {
         <div style={styles.container}>
             <SideNavbar />
             <div style={{marginLeft: "250px"}}>
-                <div style={styles.headerContainer}>
-                    <img
-                        src={famUniteLogo}
-                        alt="FAMUnite Logo"
-                        style={styles.logo}
-                    />
-                    <h2 style={styles.header}>Home</h2>
-                </div>
+                <Header pageTitle="Home" />
+
                 <h2 style={styles.subHeader}>Upcoming Events</h2>
                 <div style={styles.scrollContainer}>
                     <ul style={styles.horizontalList}>
@@ -220,20 +215,9 @@ const styles = {
         scrollbarWidth: "none",
         msOverflowStyle: "none",
     },
-    headerContainer: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "10px",
-        marginBottom: "20px"
-    },
     logo: {
         width: "50px",
         height: "50px",
-    },
-    header: {
-        fontSize: "24px",
-        fontWeight: "bold",
     },
     subHeader: {
         fontSize: "18px",
@@ -248,22 +232,6 @@ const styles = {
         border: "none",
         cursor: "pointer",
         borderRadius: "5px"
-    },
-    detailsContainer: {
-        marginTop: "20px",
-        padding: "15px",
-        border: "1px solid #ddd",
-        borderRadius: "10px",
-        backgroundColor: "#e9ecef"
-    },
-    logoutButton: {
-        padding: "10px",
-        backgroundColor: "#BF6319",
-        color: "white",
-        border: "none",
-        cursor: "pointer",
-        borderRadius: "5px",
-        marginTop: "10px"
     }
 
 

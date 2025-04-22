@@ -9,6 +9,7 @@ import Events from "./pages/Events";
 import Profile from "./pages/Profile";
 import Messages from "./pages/Messages";
 import SignUpPage from "./pages/SignUpPage";
+import './styles/global.css';
 
 function App() {
     return (
