@@ -1,6 +1,6 @@
 import React from "react";
 
-const SearchBar = ({ value, onChange, placeholder = "Search..." }) => {
+const SearchBar = ({ value, onChange, placeholder = "Search events..." }) => {
 
     return (
         <input
@@ -17,14 +17,13 @@ const SearchBar = ({ value, onChange, placeholder = "Search..." }) => {
 
 const styles = {
     input: {
-        padding: "10px 14px",
-        border: "2px solid #ccc",
-        borderRadius: "8px",
-        fontSize: "16px",
         outline: "none",
         transition: "border-color 0.3s ease",
-        width: "100%",
-        maxWidth: "600px",
+        padding: "8px",
+        width: "90%",
+        marginBottom: "20px",
+        borderRadius: "8px",
+        border: "1px solid #ccc"
     },
     focus: {
         borderColor: "#4CAF50",

@@ -12,6 +12,7 @@ import {
     setDoc
 } from "firebase/firestore";
 import { auth, firestore } from "../context/firebaseConfig";
+import SearchBar from "../components/SearchBar";
 
 function OrganizationLiaisonDashboard() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -116,7 +117,8 @@ function OrganizationLiaisonDashboard() {
                 ...newEvent,
                 createdBy: user.uid,
                 createdAt: new Date().toISOString(),
-                organizationName: userData.organizationName || "Unknown"
+                organizationName: userData.organizationName || "Unknown",
+                verified: false,
             };
 
             const docRef = await addDoc(collection(firestore, "Event"), eventToCreate);
@@ -211,17 +213,47 @@ function OrganizationLiaisonDashboard() {
                     <>
                         <h2>Organization Liaison Dashboard</h2>
 
-                        <input
-                            type="text"
-                            placeholder="Search events..."
-                            value={searchTerm}
-                            onChange={handleSearch}
-                            style={styles.searchBar}
-                        />
+                        <SearchBar/>
 
                         <div style={styles.section}>
                             <h3>Create New Event</h3>
-                            {['title', 'category', 'description', 'location'].map(field => (
+
+                            {/* Dropdown for Category */}
+                            <select
+                                value={newEvent.category}
+                                onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value })}
+                                style={{ ...styles.input, padding: "10px" }}
+                            >
+                                <option value="">Select Category</option>
+                                {[
+                                    "Academic",
+                                    "Career / Professional Development",
+                                    "Workshops",
+                                    "Social",
+                                    "Cultural",
+                                    "Performing Arts / Entertainment",
+                                    "Community Service",
+                                    "Health & Wellness",
+                                    "Sports / Recreation",
+                                    "Religious / Spiritual",
+                                    "Club / Organization Meetings",
+                                    "Fundraisers",
+                                    "Networking Events",
+                                    "Student Government",
+                                    "Study Groups / Tutoring",
+                                    "Housing & Campus Life",
+                                    "Competitions / Hackathons",
+                                    "Tech / Innovation",
+                                    "Political",
+                                    "Alumni Events"
+                                ].map((category) => (
+                                    <option key={category} value={category}>
+                                        {category}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {['title', 'description', 'location'].map((field) => (
                                 <input
                                     key={field}
                                     type="text"
@@ -231,16 +263,21 @@ function OrganizationLiaisonDashboard() {
                                     style={styles.input}
                                 />
                             ))}
+
+
+
                             <input
                                 type="date"
                                 value={newEvent.date}
                                 onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
                                 style={styles.input}
                             />
+
                             <button onClick={handleCreateEvent} style={styles.button}>
                                 Create Event
                             </button>
                         </div>
+
 
                         <ul style={styles.list}>
                             {filteredEvents.map((event) => (
@@ -386,13 +423,6 @@ const styles = {
         maxWidth: "800px",
         margin: "0 auto",
         textAlign: "center",
-    },
-    searchBar: {
-        padding: "8px",
-        width: "90%",
-        marginBottom: "20px",
-        borderRadius: "8px",
-        border: "1px solid #ccc"
     },
     section: {
         marginBottom: "30px"

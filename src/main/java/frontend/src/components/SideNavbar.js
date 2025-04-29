@@ -15,7 +15,7 @@ const SideNavbar = () => {
                 const userDoc = await getDoc(userDocRef);
                 if (userDoc.exists()) {
                     const data = userDoc.data();
-                    setRole(data.role); // Assume 'role' field exists in Firestore
+                    setRole(data.role);
                 }
             }
         };

@@ -106,7 +106,7 @@ const EventCard = ({ event, onRegister }) => {
 
             {showDetails && (
                 isPrivileged ? (
-                    <EventVerifyCard event={event} onClose={() => setShowDetails(false)} />
+                    <EventVerifyCard event={event} currentUserRole={userRole} onClose={() => setShowDetails(false)} />
                 ) : (
                     <EventDetailOverlay event={event} onClose={() => setShowDetails(false)} />
                 )
