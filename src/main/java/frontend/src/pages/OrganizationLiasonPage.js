@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
-import { getDoc } from "firebase/firestore"; // Add this import
+import {getDoc, query, where} from "firebase/firestore"; // Add this import
 import {
     collection,
     getDocs,
@@ -31,6 +31,8 @@ function OrganizationLiaisonDashboard() {
     });
     const [view, setView] = useState("dashboard"); // 'dashboard' or 'profile'
     const [userData, setUserData] = useState(null);
+    const [registrations, setRegistrations] = useState([]);
+
 
 
     const navigate = useNavigate();
@@ -84,7 +86,16 @@ function OrganizationLiaisonDashboard() {
             console.error("Error fetching events:", error);
         }
     };
-
+        const fetchEventRegistrations = async (eventId) => {
+            try {
+                const q = query(collection(firestore, "Registrations"), where("eventId", "==", eventId));
+                const snapshot = await getDocs(q);
+                const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setRegistrations(data);
+            } catch (error) {
+                console.error("Error fetching registrations:", error);
+            }
+        };
     const handleSearch = (e) => {
         const term = e.target.value.toLowerCase();
         setSearchTerm(term);
@@ -152,6 +163,12 @@ function OrganizationLiaisonDashboard() {
         }
     };
 
+
+
+    const handleEventClick = async (event) => {
+        setSelectedEvent(event);
+        await fetchEventRegistrations(event.id);
+    };
 
 
     const handleEditEvent = async () => {
@@ -280,26 +297,43 @@ function OrganizationLiaisonDashboard() {
 
                         {selectedEvent && (
                             <div style={styles.section}>
-                                <h3>Edit Event</h3>
-                                {['title', 'category', 'description', 'location'].map(field => (
+                                <div style={styles.analytics}>
+                                    <h3>Event Statistics for: {selectedEvent.title}</h3>
+                                    <p><strong>Total Registrations:</strong> {registrations.length}</p>
+                                    {registrations.map((reg, index) => (
+                                        <div key={index} style={{
+                                            padding: "10px",
+                                            border: "1px solid #ccc",
+                                            marginTop: "10px",
+                                            borderRadius: "8px"
+                                        }}>
+                                            <p><strong>User ID:</strong> {reg.userId}</p>
+                                            <p><strong>Registered At:</strong> {new Date(reg.timestamp?.toDate?.() || reg.timestamp).toLocaleString()}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div>
+                                    <h3>Edit Event</h3>
+                                    {['title', 'category', 'description', 'location'].map(field => (
+                                        <input
+                                            key={field}
+                                            type="text"
+                                            placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                                            value={selectedEvent[field]}
+                                            onChange={(e) => setSelectedEvent({ ...selectedEvent, [field]: e.target.value })}
+                                            style={styles.input}
+                                        />
+                                    ))}
                                     <input
-                                        key={field}
-                                        type="text"
-                                        placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                                        value={selectedEvent[field]}
-                                        onChange={(e) => setSelectedEvent({ ...selectedEvent, [field]: e.target.value })}
+                                        type="date"
+                                        value={selectedEvent.date}
+                                        onChange={(e) => setSelectedEvent({ ...selectedEvent, date: e.target.value })}
                                         style={styles.input}
                                     />
-                                ))}
-                                <input
-                                    type="date"
-                                    value={selectedEvent.date}
-                                    onChange={(e) => setSelectedEvent({ ...selectedEvent, date: e.target.value })}
-                                    style={styles.input}
-                                />
-                                <button onClick={handleEditEvent} style={styles.button}>
-                                    Update Event
-                                </button>
+                                    <button onClick={handleEditEvent} style={styles.button}>
+                                        Update Event
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>
