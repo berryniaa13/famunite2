@@ -19,6 +19,10 @@ import EventCard from "../components/EventCard";
 import EventCardRectangular from "../components/EventCardRectangular";
 import Header from "../components/Header";
 
+
+import EventReviewForm from "../components/EventReviewForm";
+import EventReviewsList from "../components/EventReviewsList";
+
 function StudentDashboard() {
     const [filteredEvents, setFilteredEvents] = useState([]);
     const [registeredEvents, setRegisteredEvents] = useState([]);
@@ -166,11 +170,22 @@ function StudentDashboard() {
                         <div className={"horizontalContainer"}>
                             <ul className={"horizontalList"}>
                                 {registeredEvents.map((event) => (
-                                    <EventCard
-                                        key={event.id}
-                                        event={event}
-                                        onUnregister={() => handleUnregister(event.id)}
-                                    />
+                                    <li key={event.id} style={{listStyle: "none", width: "100%"}}>
+                                        <EventCard
+                                            event={event}
+                                            onUnregister={() => handleUnregister(event.id)}
+                                        />
+                                        <div style={{
+                                            padding: "10px",
+                                            backgroundColor: "#f0f0f0",
+                                            borderRadius: "8px",
+                                            marginTop: "8px"
+                                        }}>
+                                            <h4 style={{textAlign: "left"}}>Leave a Review</h4>
+                                            <EventReviewForm eventId={event.id}/>
+                                            <EventReviewsList eventId={event.id}/> {/* <-- NEW */}
+                                        </div>
+                                    </li>
                                 ))}
                             </ul>
                         </div>
