@@ -37,6 +37,15 @@ const SideNavbar = () => {
                 return "/login";
         }
     };
+    const getMessagesRoute = () => {
+        switch (role) {
+            case "Organization Liaison":
+                return "/chat-select-student";
+            default:
+                return "/chat-select";
+        }
+    };
+
 
     return (
         <div style={styles.sidebar}>
@@ -48,7 +57,7 @@ const SideNavbar = () => {
                 <Link to={getDashboardRoute()} style={styles.navLink}>Dashboard</Link>
                 <Link to="/events" style={styles.navLink}>Events</Link>
                 <Link to="/profile" style={styles.navLink}>Profile</Link>
-                <Link to="/messages" style={styles.navLink}>Messages</Link>
+                <Link to={getMessagesRoute()} style={styles.navLink}>Messages</Link>
                 <Link to="/login" style={styles.logout}>Logout</Link>
             </nav>
         </div>

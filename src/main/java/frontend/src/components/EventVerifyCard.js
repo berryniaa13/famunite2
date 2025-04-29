@@ -94,7 +94,7 @@ const EventVerifyCard = ({ event, currentUserRole, onClose }) => {
             // 2. Set event request status to Denied
             const fieldsToUpdate = {
                 approvals: updatedApprovals,
-                status: "Denied", 
+                status: "Denied",
             };
 
             const requestRef = doc(db, "EventRequest", verifyData.id);
@@ -149,7 +149,7 @@ const EventVerifyCard = ({ event, currentUserRole, onClose }) => {
                                         let circleColor = "#ccc"; // default gray
                                         if (approval.status === "Approved") circleColor = "#28a745"; // green
                                         else if (approval.status === "Pending Approval") circleColor = "#6c757d"; // gray
-                                        else if (approval.status === "Rejected") circleColor = "#dc3545"; // red
+                                        else if (approval.status === "Denied") circleColor = "#dc3545"; // red
 
                                         return (
                                             <div key={index} style={styles.approvalItem}>

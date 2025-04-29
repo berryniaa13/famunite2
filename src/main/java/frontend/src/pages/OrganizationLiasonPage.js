@@ -13,6 +13,9 @@ import {
 } from "firebase/firestore";
 import { auth, firestore } from "../context/firebaseConfig";
 import SearchBar from "../components/SearchBar";
+import SideNavbar from "../components/SideNavbar";
+import Header from "../components/Header";
+import EventCardRectangular from "../components/EventCardRectangular";
 
 function OrganizationLiaisonDashboard() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -29,11 +32,6 @@ function OrganizationLiaisonDashboard() {
     const [view, setView] = useState("dashboard"); // 'dashboard' or 'profile'
     const [userData, setUserData] = useState(null);
 
-    // Extend profile state to include organizationName.
-    const [profileEdit, setProfileEdit] = useState({
-        displayName: "",
-        organizationName: ""
-    });
 
     const navigate = useNavigate();
 
@@ -50,14 +48,12 @@ function OrganizationLiaisonDashboard() {
                         setUserData({
                             uid: user.uid,
                             email: user.email,
+                            role: user.role,
                             displayName: data.name || "No name set",
                             organizationName: data.organizationName || "No organization set"
                         });
+                        console.log(userDocSnap.data());
 
-                        setProfileEdit({
-                            displayName: data.name || "",
-                            organizationName: data.organizationName || ""
-                        });
                     }
                 } catch (error) {
                     console.error("Error fetching user data:", error);
@@ -109,10 +105,12 @@ function OrganizationLiaisonDashboard() {
             const user = auth.currentUser;
             if (!user) return;
 
+            // Step 1: Fetch the user's data
             const userDocRef = doc(firestore, "User", user.uid);
             const userSnap = await getDoc(userDocRef);
             const userData = userSnap.exists() ? userSnap.data() : {};
 
+            // Step 2: Create the event document
             const eventToCreate = {
                 ...newEvent,
                 createdBy: user.uid,
@@ -121,17 +119,39 @@ function OrganizationLiaisonDashboard() {
                 verified: false,
             };
 
-            const docRef = await addDoc(collection(firestore, "Event"), eventToCreate);
-            const createdEvent = { id: docRef.id, ...eventToCreate };
+            const eventDocRef = await addDoc(collection(firestore, "Event"), eventToCreate);
+            const createdEvent = { id: eventDocRef.id, ...eventToCreate };
+
+            // Step 3: Create a related EventRequest document
+            const eventRequestToCreate = {
+                event: eventDocRef, // Firestore document reference
+                submittedBy: user.uid,
+                role: userData.role || "Organization Liaison",
+                note: "",
+                status: "Pending",
+                approvals: [
+                    { role: "Organization Liaison", status: "Pending Approval" },
+                    { role: "Event Moderator", status: "Pending Approval" },
+                    { role: "Admin", status: "Pending Approval" }
+                ],
+                createdAt: new Date().toISOString()
+            };
+
+            await addDoc(collection(firestore, "EventRequest"), eventRequestToCreate);
+
+            // Step 4: Update local state
             const updated = [...events, createdEvent];
             setEvents(updated);
             setFilteredEvents(updated);
             setNewEvent({ title: "", category: "", description: "", location: "", date: "" });
+
+            alert("Event and request submitted successfully!");
         } catch (error) {
-            console.error("Error creating event:", error);
+            console.error("Error creating event or request:", error);
             alert("You do not have permission to create events.");
         }
     };
+
 
 
     const handleEditEvent = async () => {
@@ -164,59 +184,18 @@ function OrganizationLiaisonDashboard() {
         }
     };
 
-    // Update profile to save both displayName and organizationName.
-    const handleProfileUpdate = async () => {
-        try {
-            const user = auth.currentUser;
-            if (!user) return;
-
-            const userDocRef = doc(firestore, "User", user.uid);
-            await setDoc(
-                userDocRef,
-                {
-                    displayName: profileEdit.displayName,
-                    organizationName: profileEdit.organizationName
-                },
-                { merge: true }
-            );
-
-            setUserData({
-                ...userData,
-                displayName: profileEdit.displayName,
-                organizationName: profileEdit.organizationName || userData.organizationName
-            });
-
-            alert("Profile updated successfully.");
-        } catch (error) {
-            console.error("Error updating profile:", error);
-            alert("There was an error updating your profile.");
-        }
-    };
-
-    const handleLogout = async () => {
-        await signOut(auth);
-        navigate("/login");
-    };
-
     return (
-        <div style={styles.pageWrapper}>
-            <div style={styles.sidebar}>
-                <h3 style={styles.sidebarHeader}>FAMUnite</h3>
-                <button style={styles.navButton} onClick={() => setView("dashboard")}>Dashboard</button>
-                <button style={styles.navButton} onClick={() => setView("profile")}>Profile</button>
-                <button style={styles.navButton} onClick={() => navigate("/chat-select-student")}>Messages</button>
-                <button style={styles.logoutButton} onClick={handleLogout}>Logout</button>
-            </div>
+        <div className={"container"}>
+            <SideNavbar/>
 
-            <div style={styles.mainContent}>
-                {view === "dashboard" && (
-                    <>
-                        <h2>Organization Liaison Dashboard</h2>
+            <div style={{ marginLeft: "250px" }}>
 
-                        <SearchBar/>
-
+                <Header pageTitle={"Organization Liason Dashboard"}/>
+                <SearchBar/>
+                <div className={"dashboard-container"}>
+                    <div className={"left-column"}>
                         <div style={styles.section}>
-                            <h3>Create New Event</h3>
+                            <h3 className={"subHeader"}>Create New Event</h3>
 
                             {/* Dropdown for Category */}
                             <select
@@ -282,10 +261,11 @@ function OrganizationLiaisonDashboard() {
                         <ul style={styles.list}>
                             {filteredEvents.map((event) => (
                                 <li key={event.id} style={styles.listItem}>
-                                    <div>
-                                        <h4>{event.title}</h4>
-                                        <p>{event.date}</p>
-                                    </div>
+                                    <EventCardRectangular event={event} currentUser={userData} />
+                                    {/*<div>*/}
+                                    {/*    <h4>{event.title}</h4>*/}
+                                    {/*    <p>{event.date}</p>*/}
+                                    {/*</div>*/}
                                     <div>
                                         <button onClick={() => setSelectedEvent(event)} style={styles.smallButton}>
                                             Edit
@@ -322,80 +302,20 @@ function OrganizationLiaisonDashboard() {
                                 </button>
                             </div>
                         )}
-                    </>
-                )}
+                    </div>
+                    <div className={"right-column"}>
+                        <h3 className={"subHeader"}>Announcements</h3>
 
-                {view === "profile" && userData && (
-                    <div style={styles.section}>
-                        <h2>My Profile</h2>
-                        <p><strong>Name:</strong> {userData.displayName}</p>
-                        <p><strong>Email:</strong> {userData.email}</p>
-                        <p><strong>Organization Name:</strong> {userData.organizationName}</p>
-                        <hr style={{ margin: "20px 0" }} />
-                        <h3>Update Your Profile</h3>
-                        <label>
-                            <strong>Name:</strong>
-                            <input
-                                type="text"
-                                value={profileEdit.displayName}
-                                onChange={(e) =>
-                                    setProfileEdit({ ...profileEdit, displayName: e.target.value })
-                                }
-                                style={styles.input}
-                            />
-                        </label>
-                        <label>
-                            <strong>Organization Name:</strong>
-                            <input
-                                type="text"
-                                value={profileEdit.organizationName}
-                                onChange={(e) =>
-                                    setProfileEdit({ ...profileEdit, organizationName: e.target.value })
-                                }
-                                style={styles.input}
-                            />
-                        </label>
-                        <button onClick={handleProfileUpdate} style={styles.button}>
-                            Update Profile
-                        </button>
+                        <h3 className={"subHeader"}>Messages</h3>
                     </div>
-                )}
-                {view === "messages" && (
-                    <div style={styles.section}>
-                        <h2>Messages</h2>
-                        <p>Select a student or user to start chatting.</p>
-                        <button onClick={() => navigate("/chat-select")} style={styles.button}>
-                            Go to Chat Selection
-                        </button>
-                    </div>
-                )}
+                </div>
             </div>
         </div>
     );
 }
 
 const styles = {
-    pageWrapper: {
-        display: 'flex',
-        minHeight: '100vh',
-        backgroundColor: '#F2EBE9',
-    },
-    sidebar: {
-        width: '220px',
-        backgroundColor: '#12491B',
-        padding: '30px 20px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        color: 'white',
-        gap: '15px',
-    },
-    sidebarHeader: {
-        fontSize: '20px',
-        fontWeight: 'bold',
-        marginBottom: '20px',
-        color: 'white'
-    },
+
     navButton: {
         background: 'transparent',
         border: 'none',
@@ -406,23 +326,6 @@ const styles = {
         textAlign: 'left',
         width: '100%',
         borderBottom: '1px solid rgba(255,255,255,0.2)'
-    },
-    logoutButton: {
-        padding: "10px",
-        backgroundColor: "#BF6319",
-        color: "white",
-        border: "none",
-        cursor: "pointer",
-        marginTop: "auto",
-        borderRadius: "5px",
-        width: "100%"
-    },
-    mainContent: {
-        flex: 1,
-        padding: "30px",
-        maxWidth: "800px",
-        margin: "0 auto",
-        textAlign: "center",
     },
     section: {
         marginBottom: "30px"

@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import sampleEventImage from "../assets/sampleEventImage.jpg";
 import EventDetailOverlay from "./EventDetailOverlay";
+import {deleteDoc, doc, updateDoc} from "firebase/firestore";
+import {firestore} from "../context/firebaseConfig";
 
 const placeholderImage = sampleEventImage;
 
@@ -27,9 +29,37 @@ const categoryColors = {
     "Alumni Events": "#8e24aa"
 };
 
-const EventCardRectangular = ({ event, onRegister, onUnregister }) => {
+
+const EventCardRectangular = ({ event, onRegister, onUnregister, currentUser }) => {
     const tagColor = categoryColors[event.category] || "#9e9e9e";
     const [showDetails, setShowDetails] = useState(false);
+
+    const isLiaisonForEventOrg =
+        currentUser?.role === "Organization Liaison"
+
+    useEffect(() => {
+        console.log(isLiaisonForEventOrg);
+    }, []);
+    const handleEditEvent = async () => {
+        if (!event?.id) return;
+
+        try {
+            const eventRef = doc(firestore, "Event", event.id);
+            await updateDoc(eventRef, event);
+            alert("Event edited successfully!");
+        } catch (error) {
+            console.error("Error updating event:", error);
+        }
+    };
+
+    const handleDeleteEvent = async (eventId) => {
+        try {
+            await deleteDoc(doc(firestore, "Event", eventId));
+            alert("Event deleted.");
+        } catch (error) {
+            console.error("Error deleting event:", error);
+        }
+    };
 
     return (
         <>
@@ -41,29 +71,42 @@ const EventCardRectangular = ({ event, onRegister, onUnregister }) => {
                         style={styles.image}
                     />
                     <span style={{ ...styles.tag, backgroundColor: tagColor }}>
-            {event.category}
-          </span>
+                        {event.category}
+                    </span>
                     <div style={styles.right}>
                         <h3 style={styles.title}>{event.title || "Untitled Event"}</h3>
                         <p style={styles.meta}><strong>Date:</strong> {event.date || "TBD"}</p>
                         <p style={styles.meta}><strong>Location:</strong> {event.location || "TBD"}</p>
                         <div style={styles.actions}>
-                            <button onClick={() => setShowDetails(true)} style={styles.viewBtn}>
-                                View Details
-                            </button>
-                            {onRegister && event.verified && !event.suspended ? (
-                                <button onClick={() => onRegister(event.id)} style={styles.registerBtn}>
-                                    Register
-                                </button>
-                            ) : onRegister && event.suspended ? (
-                                <span style={styles.awaiting}>Event Suspended</span>
-                            ) : onRegister ? (
-                                <span style={styles.awaiting}>Awaiting Verification</span>
-                            ) : null}
-                            {onUnregister && (
-                                <button onClick={onUnregister} style={styles.registerBtn}>
-                                    Unregister
-                                </button>
+                            {currentUser.role === "Organization Liaison" ? (
+                                <>
+                                    <button onClick={handleEditEvent} style={styles.viewBtn}>
+                                        Edit
+                                    </button>
+                                    <button onClick={() => handleDeleteEvent(event.id)} style={styles.registerBtn}>
+                                        Delete
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <button onClick={() => setShowDetails(true)} style={styles.viewBtn}>
+                                        View Details
+                                    </button>
+                                    {onRegister && event.verified && !event.suspended ? (
+                                        <button onClick={() => onRegister(event.id)} style={styles.registerBtn}>
+                                            Register
+                                        </button>
+                                    ) : onRegister && event.suspended ? (
+                                        <span style={styles.awaiting}>Event Suspended</span>
+                                    ) : onRegister ? (
+                                        <span style={styles.awaiting}>Awaiting Verification</span>
+                                    ) : null}
+                                    {onUnregister && (
+                                        <button onClick={onUnregister} style={styles.registerBtn}>
+                                            Unregister
+                                        </button>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>
@@ -76,6 +119,7 @@ const EventCardRectangular = ({ event, onRegister, onUnregister }) => {
         </>
     );
 };
+
 
 const styles = {
     card: {
