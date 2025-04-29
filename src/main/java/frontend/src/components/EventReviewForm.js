@@ -23,7 +23,7 @@ function EventReviewForm({ eventId }) {
             setRating(0);
             setComment("");
         } catch (err) {
-            console.error("Error submitting review:", err);
+            console.error("Error submitCing review:", err);
             alert("Failed to submit review.");
         }
     };

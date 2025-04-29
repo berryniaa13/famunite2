@@ -41,6 +41,8 @@ function EventModeratorPage() {
         }
     };
 
+
+
     const handleSearch = (e) => {
         const term = e.target.value.toLowerCase();
         setSearchTerm(term);

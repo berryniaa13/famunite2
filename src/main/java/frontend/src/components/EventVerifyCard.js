@@ -76,6 +76,21 @@ const EventVerifyCard = ({ event, currentUserRole, onClose }) => {
         }
     };
 
+    const handleToggleSuspend = async () => {
+        try {
+            const eventRef = doc(db, "Event", event.id);
+            const newStatus = event.status === "Suspended" ? "Active" : "Suspended";
+
+            await updateDoc(eventRef, { status: newStatus });
+
+            alert(`Event has been ${newStatus === "Suspended" ? "suspended" : "unsuspended"}.`);
+            onClose(); // Optionally refresh or close
+        } catch (error) {
+            console.error("Error toggling event status:", error);
+        }
+    };
+
+
     const handleDeny = async () => {
         try {
             if (!verifyData.id) {
@@ -178,6 +193,23 @@ const EventVerifyCard = ({ event, currentUserRole, onClose }) => {
                 <div style={styles.footer}>
                     <button onClick={handleSubmit} style={styles.submitBtn}>Approve</button>
                     <button onClick={handleDeny} style={styles.denyBtn}>Deny</button>
+                    <button
+                        onClick={handleToggleSuspend}
+                        style={{
+                            marginTop: "16px",
+                            padding: "10px 16px",
+                            backgroundColor: event.status === "Suspended" ? "#dc3545" : "#6c757d", // 🔴 Red if suspended, Gray if active
+                            color: "#fff",
+                            width: "150px",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                        }}
+                    >
+                        {event.status === "Suspended" ? "Unsuspend" : "Suspend"}
+                    </button>
+
+
                 </div>
             </div>
         </div>
@@ -287,6 +319,7 @@ const styles = {
         borderRadius: "6px",
         cursor: "pointer"
     },
+
     approvalsList: {
         display: "flex",
         flexWrap: "wrap",
