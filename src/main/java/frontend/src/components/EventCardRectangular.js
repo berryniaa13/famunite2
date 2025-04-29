@@ -34,11 +34,8 @@ const EventCardRectangular = ({ event, onRegister, onUnregister, currentUser }) 
     const tagColor = categoryColors[event.category] || "#9e9e9e";
     const [showDetails, setShowDetails] = useState(false);
 
-    const isLiaisonForEventOrg =
-        currentUser?.role === "Organization Liaison"
-
     useEffect(() => {
-        console.log(isLiaisonForEventOrg);
+        // console.log(isLiaisonForEventOrg);
     }, []);
     const handleEditEvent = async () => {
         if (!event?.id) return;
@@ -78,16 +75,16 @@ const EventCardRectangular = ({ event, onRegister, onUnregister, currentUser }) 
                         <p style={styles.meta}><strong>Date:</strong> {event.date || "TBD"}</p>
                         <p style={styles.meta}><strong>Location:</strong> {event.location || "TBD"}</p>
                         <div style={styles.actions}>
-                            {currentUser.role === "Organization Liaison" ? (
-                                <>
-                                    <button onClick={handleEditEvent} style={styles.viewBtn}>
-                                        Edit
-                                    </button>
-                                    <button onClick={() => handleDeleteEvent(event.id)} style={styles.registerBtn}>
-                                        Delete
-                                    </button>
-                                </>
-                            ) : (
+                            {/*{currentUser.role === "Organization Liaison" ? (*/}
+                            {/*    <>*/}
+                            {/*        <button onClick={handleEditEvent} style={styles.viewBtn}>*/}
+                            {/*            Edit*/}
+                            {/*        </button>*/}
+                            {/*        <button onClick={() => handleDeleteEvent(event.id)} style={styles.registerBtn}>*/}
+                            {/*            Delete*/}
+                            {/*        </button>*/}
+                            {/*    </>*/}
+                            {/*) : (*/}
                                 <>
                                     <button onClick={() => setShowDetails(true)} style={styles.viewBtn}>
                                         View Details
@@ -107,7 +104,7 @@ const EventCardRectangular = ({ event, onRegister, onUnregister, currentUser }) 
                                         </button>
                                     )}
                                 </>
-                            )}
+                            {/*)}*/}
                         </div>
                     </div>
                 </div>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import SideNavbar from "../components/SideNavbar";
+import Header from "../components/Header";
 import famUniteLogo from "../assets/FAMUniteLogoNude.png";
 
 const db = getFirestore();
@@ -12,8 +13,10 @@ function Profile() {
         name: "",
         role: "",
         email: "",
-        contact_info: ""
+        contact_info: "",
+        organizationName: ""
     });
+    const [organization, setOrganization] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -23,11 +26,32 @@ function Profile() {
                 const docRef = doc(db, "User", user.uid);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
-                    setProfile(docSnap.data());
+                    const userProfile = docSnap.data();
+                    setProfile(userProfile);
+
+                    //  If Organization Liaison, find organization where createdBy == user.uid
+                    if (userProfile.role === "Organization Liaison") {
+                        const orgQuery = query(
+                            collection(db, "Organizations"),
+                            where("createdBy", "==", user.uid)
+                        );
+                        const querySnapshot = await getDocs(orgQuery);
+                        if (!querySnapshot.empty) {
+                            const orgDoc = querySnapshot.docs[0];
+                            setOrganization({ id: orgDoc.id, ...orgDoc.data() });
+
+                            //  Update the organizationName inside the profile
+                            setProfile(prev => ({
+                                ...prev,
+                                organizationName: orgDoc.data().name || ""
+                            }));
+                        }
+                    }
                 }
                 setLoading(false);
             }
         };
+
         fetchProfile();
     }, []);
 
@@ -39,8 +63,17 @@ function Profile() {
     const handleSave = async () => {
         const user = auth.currentUser;
         if (user) {
-            const docRef = doc(db, "User", user.uid);
-            await updateDoc(docRef, profile);
+            const userRef = doc(db, "User", user.uid);
+            await updateDoc(userRef, profile);
+
+            //  Update organization name too if the user is a Liaison
+            if (profile.role === "Organization Liaison" && organization) {
+                const orgRef = doc(db, "Organizations", organization.id);
+                await updateDoc(orgRef, {
+                    name: profile.organizationName
+                });
+            }
+
             alert("Profile updated successfully!");
         }
     };
@@ -51,10 +84,21 @@ function Profile() {
         <div style={styles.container}>
             <SideNavbar />
             <div style={{ marginLeft: "250px" }}>
-                <div style={styles.headerContainer}>
-                    <img src={famUniteLogo} alt="FAMUnite Logo" style={styles.logo} />
-                    <h2 style={styles.header}>Edit Profile</h2>
-                </div>
+                <Header pageTitle={"Edit Profile"} />
+                {profile.role === "Organization Liaison" && (
+                    <div style={styles.section}>
+                        <label>
+                            <strong>Organization Name:</strong>
+                            <input
+                                type="text"
+                                name="organizationName"
+                                value={profile.organizationName}
+                                onChange={handleChange}
+                                style={styles.input}
+                            />
+                        </label>
+                    </div>
+                )}
                 <div style={styles.formContainer}>
                     <input
                         type="text"
@@ -73,8 +117,6 @@ function Profile() {
                         <option value="">Select Role</option>
                         <option value="Student">Student</option>
                         <option value="Organization Liaison">Organization Liaison</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Event Moderator">Event Moderator</option>
                     </select>
 
                     <input
@@ -107,21 +149,6 @@ const styles = {
         backgroundColor: "#F2EBE9",
         minHeight: "100vh"
     },
-    headerContainer: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "10px",
-        marginBottom: "20px"
-    },
-    logo: {
-        width: "50px",
-        height: "50px",
-    },
-    header: {
-        fontSize: "24px",
-        fontWeight: "bold",
-    },
     formContainer: {
         maxWidth: "400px",
         margin: "0 auto",
@@ -144,6 +171,9 @@ const styles = {
         cursor: "pointer",
         borderRadius: "5px",
         marginTop: "10px"
+    },
+    section: {
+        padding: "20px",
     }
 };
 
