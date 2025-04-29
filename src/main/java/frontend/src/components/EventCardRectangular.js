@@ -62,18 +62,21 @@ const EventCardRectangular = ({ event, onRegister, onUnregister, currentUser }) 
         <>
             <li style={styles.card} className="event-card-rect">
                 <div className="event-content" style={styles.content}>
+                    <div style={styles.imageContainer}>
                     <img
                         src={event.imageURL || placeholderImage}
                         alt={event.title}
                         style={styles.image}
-                    />
+                    /></div>
                     <span style={{ ...styles.tag, backgroundColor: tagColor }}>
                         {event.category}
                     </span>
                     <div style={styles.right}>
                         <h3 style={styles.title}>{event.title || "Untitled Event"}</h3>
+                        <p style={styles.meta}>{event.organizationName || "TBD"}</p>
                         <p style={styles.meta}><strong>Date:</strong> {event.date || "TBD"}</p>
                         <p style={styles.meta}><strong>Location:</strong> {event.location || "TBD"}</p>
+
                         <div style={styles.actions}>
                             {/*{currentUser.role === "Organization Liaison" ? (*/}
                             {/*    <>*/}
@@ -136,12 +139,20 @@ const styles = {
         flexDirection: "row",
         alignItems: "stretch"
     },
+    imageContainer: {
+        width: "240px",
+        height: "200px",
+        overflow: "hidden",
+        borderRadiusTopLeft: '8px',
+        borderRadiusBottomRight: '8px',
+    },
     image: {
-        width: "180px",
+        width: "100%",
         height: "100%",
         objectFit: "cover",
-        borderTopLeftRadius: "10px",
-        borderBottomLeftRadius: "10px"
+        display: "block",
+        borderRadiusTopLeft: '8px',
+        borderRadiusBottomRight: '8px',
     },
     right: {
         flex: 1,
@@ -172,7 +183,7 @@ const styles = {
     meta: {
         fontSize: "13px",
         color: "#444",
-        marginBottom: "4px",
+        margin: "4px",
         justifyContent: "flex-start",
         textAlign: "left"
     },

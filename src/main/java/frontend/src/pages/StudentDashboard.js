@@ -160,40 +160,48 @@ function StudentDashboard() {
             <SideNavbar />
             <div style={{marginLeft: "250px"}}>
                 <Header pageTitle="Home" />
+                <div className={"dashboard-container"}>
+                    <div className={"left-column"}>
+                        <h2 className={"subHeader"}>Upcoming Events</h2>
+                        <div className={"horizontalContainer"}>
+                            <ul className={"horizontalList"}>
+                                {registeredEvents.map((event) => (
+                                    <EventCard
+                                        key={event.id}
+                                        event={event}
+                                        onUnregister={() => handleUnregister(event.id)}
+                                    />
+                                ))}
+                            </ul>
+                        </div>
 
-                <h2 className={"subHeader"}>Upcoming Events</h2>
-                <div style={styles.scrollContainer}>
-                    <ul style={styles.horizontalList}>
-                        {registeredEvents.map((event) => (
-                            <EventCardRectangular
-                                key={event.id}
-                                event={event}
-                                onUnregister={() => handleUnregister(event.id)}
-                            />
-                        ))}
-                    </ul>
-                </div>
+                        <h2 className={"subHeader"}>Recommended Events</h2>
+                        <div className={"horizontalContainer"}>
+                            <ul className={"horizontalList"}>
+                                {filteredEvents.map((event) => (
+                                    <EventCard
+                                        key={event.id}
+                                        event={event}
+                                        onRegister={
+                                            !isUserRegistered(event.id)
+                                                ? () => handleRegister(event.id)
+                                                : null
+                                        }
+                                        onUnregister={
+                                            isUserRegistered(event.id)
+                                                ? () => handleUnregister(event.id)
+                                                : null
+                                        }
+                                    />
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                    <div className={"right-column"}>
+                        <h3 className={"subHeader"}>Announcements</h3>
 
-                <h2 className={"subheader"}>Recommended Events</h2>
-                <div className={"horizontalContainer"}>
-                    <ul className={"horizontalList"}>
-                        {filteredEvents.map((event) => (
-                            <EventCard
-                                key={event.id}
-                                event={event}
-                                onRegister={
-                                    !isUserRegistered(event.id)
-                                        ? () => handleRegister(event.id)
-                                        : null
-                                }
-                                onUnregister={
-                                    isUserRegistered(event.id)
-                                        ? () => handleUnregister(event.id)
-                                        : null
-                                }
-                            />
-                        ))}
-                    </ul>
+                        <h3 className={"subHeader"}>Messages</h3>
+                    </div>
                 </div>
             </div>
         </div>
