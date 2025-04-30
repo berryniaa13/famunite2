@@ -1,8 +1,15 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import sampleEventImage from "../assets/sampleEventImage.jpg";
 import EventDetailOverlay from "./EventDetailOverlay";
-import {deleteDoc, doc, updateDoc} from "firebase/firestore";
-import {firestore} from "../context/firebaseConfig";
+import {
+    deleteDoc,
+    doc,
+    updateDoc,
+    getDoc,
+    arrayUnion,
+    arrayRemove
+} from "firebase/firestore";
+import { firestore } from "../context/firebaseConfig";
 
 const placeholderImage = sampleEventImage;
 
@@ -29,17 +36,28 @@ const categoryColors = {
     "Alumni Events": "#8e24aa"
 };
 
-
 const EventCardRectangular = ({ event, onRegister, onUnregister, currentUser }) => {
     const tagColor = categoryColors[event.category] || "#9e9e9e";
     const [showDetails, setShowDetails] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
 
+    // Fetch saved status for this event
     useEffect(() => {
-        // console.log(isLiaisonForEventOrg);
-    }, []);
+        if (!currentUser?.uid) return;
+        (async () => {
+            try {
+                const userRef = doc(firestore, "User", currentUser.uid);
+                const snap = await getDoc(userRef);
+                const saved = snap.data()?.savedEvents || [];
+                setIsSaved(saved.includes(event.id));
+            } catch (err) {
+                console.error("Error fetching saved events:", err);
+            }
+        })();
+    }, [currentUser, event.id]);
+
     const handleEditEvent = async () => {
         if (!event?.id) return;
-
         try {
             const eventRef = doc(firestore, "Event", event.id);
             await updateDoc(eventRef, event);
@@ -58,19 +76,37 @@ const EventCardRectangular = ({ event, onRegister, onUnregister, currentUser }) 
         }
     };
 
+    // Toggle save / unsave
+    const handleSaveToggle = async (e) => {
+        e.stopPropagation();
+        if (!currentUser?.uid) return;
+        try {
+            const userRef = doc(firestore, "User", currentUser.uid);
+            await updateDoc(userRef, {
+                savedEvents: isSaved
+                    ? arrayRemove(event.id)
+                    : arrayUnion(event.id)
+            });
+            setIsSaved(prev => !prev);
+        } catch (err) {
+            console.error("Error toggling save:", err);
+        }
+    };
+
     return (
         <>
             <li style={styles.card} className="event-card-rect">
                 <div className="event-content" style={styles.content}>
                     <div style={styles.imageContainer}>
-                    <img
-                        src={event.imageURL || placeholderImage}
-                        alt={event.title}
-                        style={styles.image}
-                    /></div>
+                        <img
+                            src={event.imageURL || placeholderImage}
+                            alt={event.title}
+                            style={styles.image}
+                        />
+                    </div>
                     <span style={{ ...styles.tag, backgroundColor: tagColor }}>
-                        {event.category}
-                    </span>
+            {event.category}
+          </span>
                     <div style={styles.right}>
                         <h3 style={styles.title}>{event.title || "Untitled Event"}</h3>
                         <p style={styles.meta}>{event.organizationName || "TBD"}</p>
@@ -78,36 +114,44 @@ const EventCardRectangular = ({ event, onRegister, onUnregister, currentUser }) 
                         <p style={styles.meta}><strong>Location:</strong> {event.location || "TBD"}</p>
 
                         <div style={styles.actions}>
-                            {/*{currentUser.role === "Organization Liaison" ? (*/}
-                            {/*    <>*/}
-                            {/*        <button onClick={handleEditEvent} style={styles.viewBtn}>*/}
-                            {/*            Edit*/}
-                            {/*        </button>*/}
-                            {/*        <button onClick={() => handleDeleteEvent(event.id)} style={styles.registerBtn}>*/}
-                            {/*            Delete*/}
-                            {/*        </button>*/}
-                            {/*    </>*/}
-                            {/*) : (*/}
-                                <>
-                                    <button onClick={() => setShowDetails(true)} style={styles.viewBtn}>
-                                        View Details
-                                    </button>
-                                    {onRegister && event.verified && !event.suspended ? (
-                                        <button onClick={() => onRegister(event.id)} style={styles.registerBtn}>
-                                            Register
-                                        </button>
-                                    ) : onRegister && event.suspended ? (
-                                        <span style={styles.awaiting}>Event Suspended</span>
-                                    ) : onRegister ? (
-                                        <span style={styles.awaiting}>Awaiting Verification</span>
-                                    ) : null}
-                                    {onUnregister && (
-                                        <button onClick={onUnregister} style={styles.registerBtn}>
-                                            Unregister
-                                        </button>
-                                    )}
-                                </>
-                            {/*)}*/}
+                            <button
+                                onClick={() => setShowDetails(true)}
+                                style={styles.viewBtn}
+                            >
+                                View Details
+                            </button>
+
+                            {onRegister && event.verified && !event.suspended ? (
+                                <button
+                                    onClick={() => onRegister(event.id)}
+                                    style={styles.registerBtn}
+                                >
+                                    Register
+                                </button>
+                            ) : onRegister && event.suspended ? (
+                                <span style={styles.awaiting}>Event Suspended</span>
+                            ) : onRegister ? (
+                                <span style={styles.awaiting}>Awaiting Verification</span>
+                            ) : null}
+
+                            {onUnregister && (
+                                <button
+                                    onClick={onUnregister}
+                                    style={styles.registerBtn}
+                                >
+                                    Unregister
+                                </button>
+                            )}
+
+                            {/* Save / Unsave for Students */}
+                            {currentUser?.role === "Student" && (
+                                <button
+                                    onClick={handleSaveToggle}
+                                    style={styles.saveBtn}
+                                >
+                                    {isSaved ? "Unsave" : "Save"}
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -119,7 +163,6 @@ const EventCardRectangular = ({ event, onRegister, onUnregister, currentUser }) 
         </>
     );
 };
-
 
 const styles = {
     card: {
@@ -144,7 +187,7 @@ const styles = {
         height: "200px",
         overflow: "hidden",
         borderRadiusTopLeft: '8px',
-        borderRadiusBottomRight: '8px',
+        borderRadiusBottomRight: '8px'
     },
     image: {
         width: "100%",
@@ -152,7 +195,7 @@ const styles = {
         objectFit: "cover",
         display: "block",
         borderRadiusTopLeft: '8px',
-        borderRadiusBottomRight: '8px',
+        borderRadiusBottomRight: '8px'
     },
     right: {
         flex: 1,
@@ -170,21 +213,18 @@ const styles = {
         fontSize: "11px",
         color: "#fff",
         fontWeight: "bold",
-        backgroundColor: "#333",
         zIndex: 10
     },
     title: {
         fontSize: "18px",
         fontWeight: "600",
         marginBottom: "6px",
-        justifyContent: "flex-start",
         textAlign: "left"
     },
     meta: {
         fontSize: "13px",
         color: "#444",
         margin: "4px",
-        justifyContent: "flex-start",
         textAlign: "left"
     },
     actions: {
@@ -204,6 +244,15 @@ const styles = {
     registerBtn: {
         padding: "8px 12px",
         backgroundColor: "#12491B",
+        color: "#fff",
+        border: "none",
+        borderRadius: "6px",
+        fontSize: "12px",
+        cursor: "pointer"
+    },
+    saveBtn: {
+        padding: "8px 12px",
+        backgroundColor: "#ffa726",
         color: "#fff",
         border: "none",
         borderRadius: "6px",

@@ -18,18 +18,19 @@ import SideNavbar from "../components/SideNavbar";
 import famUniteLogo from "../assets/FAMUniteLogoNude.png";
 import Header from "../components/Header";
 import SearchBar from "../components/SearchBar";
+import EventCardRectangular from "../components/EventCardRectangular";
 
 function Events() {
     const [searchTerm, setSearchTerm] = useState("");
     const [events, setEvents] = useState([]);
     const [filteredEvents, setFilteredEvents] = useState([]);
-    const [selectedEvent, setSelectedEvent] = useState(null);
     const [savedEvents, setSavedEvents] = useState([]);
+    const [recommendedEvents, setRecommendedEvents] = useState([]);
+    const [selectedEvent, setSelectedEvent] = useState(null);
     const [selectedOrganization, setSelectedOrganization] = useState("");
     const [organizationOptions, setOrganizationOptions] = useState([]);
     const [role, setRole] = useState(null);
     const navigate = useNavigate();
-
 
     useEffect(() => {
         fetchEvents();
@@ -49,8 +50,12 @@ function Events() {
             setEvents(eventsList);
             setFilteredEvents(eventsList);
 
+            // Populate organization filter
             const orgs = [...new Set(eventsList.map((e) => e.organizationName).filter(Boolean))];
             setOrganizationOptions(orgs);
+
+            // Example placeholder: first 3 events as "recommended"
+            setRecommendedEvents(eventsList.slice(0, 3));
         } catch (error) {
             console.error("Error fetching events:", error);
         }
@@ -61,22 +66,22 @@ function Events() {
             const user = auth.currentUser;
             if (!user) return;
 
-            const savedEventsQuery = query(
+            const savedQuery = query(
                 collection(firestore, "SavedEvents"),
                 where("userId", "==", user.uid)
             );
-            const querySnapshot = await getDocs(savedEventsQuery);
-            const savedEventIds = querySnapshot.docs.map((doc) => doc.data().eventId);
+            const snapshot = await getDocs(savedQuery);
+            const ids = snapshot.docs.map((d) => d.data().eventId);
 
-            const savedEventsDetails = await Promise.all(
-                savedEventIds.map(async (id) => {
-                    const eventRef = doc(firestore, "Event", id);
-                    const eventSnap = await getDoc(eventRef);
-                    return eventSnap.exists() ? { id, ...eventSnap.data() } : null;
+            const details = await Promise.all(
+                ids.map(async (id) => {
+                    const ref = doc(firestore, "Event", id);
+                    const snap = await getDoc(ref);
+                    return snap.exists() ? { id, ...snap.data() } : null;
                 })
             );
 
-            setSavedEvents(savedEventsDetails.filter((event) => event !== null));
+            setSavedEvents(details.filter((e) => e));
         } catch (error) {
             console.error("Error fetching saved events:", error);
         }
@@ -84,11 +89,9 @@ function Events() {
 
     const updateEventStatus = async (eventId, newStatus) => {
         if (role !== "Admin") return;
-
         try {
-            const eventDocRef = doc(firestore, "Event", eventId);
-            await updateDoc(eventDocRef, { status: newStatus });
-
+            const ref = doc(firestore, "Event", eventId);
+            await updateDoc(ref, { status: newStatus });
             setEvents((prev) =>
                 prev.map((e) => (e.id === eventId ? { ...e, status: newStatus } : e))
             );
@@ -122,9 +125,7 @@ function Events() {
         filterEvents(searchTerm, selected);
     };
 
-    const handleViewDetails = (event) => {
-        setSelectedEvent(event);
-    };
+    const handleViewDetails = (event) => setSelectedEvent(event);
 
     const handleRegister = async (eventId) => {
         const user = auth.currentUser;
@@ -132,33 +133,17 @@ function Events() {
             alert("You must be logged in to register.");
             return;
         }
-
         try {
-            const eventRef = doc(firestore, "Event", eventId);
-            const eventSnap = await getDoc(eventRef);
-
-            if (!eventSnap.exists()) {
-                alert("This event does not exist.");
-                return;
-            }
-
-            const eventData = eventSnap.data();
-            if (!eventData.verified) {
-                alert("This event is not verified yet.");
-                return;
-            }
-
-            if (eventData.status === "Suspended") {
-                alert("This event is currently suspended.");
-                return;
-            }
-
+            const ref = doc(firestore, "Event", eventId);
+            const snap = await getDoc(ref);
+            const data = snap.data();
+            if (!data?.verified) return alert("This event is not verified yet.");
+            if (data.status === "Suspended") return alert("This event is suspended.");
             await addDoc(collection(firestore, "Registrations"), {
                 userId: user.uid,
                 eventId,
                 timestamp: serverTimestamp()
             });
-
             alert("Successfully registered!");
         } catch (error) {
             console.error("Registration failed:", error);
@@ -166,204 +151,81 @@ function Events() {
         }
     };
 
-    const handleSaveEvent = async (eventId) => {
-        const user = auth.currentUser;
-        if (!user) {
-            alert("You must be logged in to save an event.");
-            return;
-        }
-
-        try {
-            if (savedEvents.find((ev) => ev.id === eventId)) {
-                alert("Event already saved.");
-                return;
-            }
-
-            await addDoc(collection(firestore, "SavedEvents"), {
-                userId: user.uid,
-                eventId,
-                savedAt: serverTimestamp()
-            });
-
-            alert("Event saved!");
-            fetchSavedEvents();
-        } catch (error) {
-            console.error("Save failed:", error);
-            alert("Failed to save event.");
-        }
-    };
-
-    const handleUnsaveEvent = async (eventId) => {
-        const user = auth.currentUser;
-        if (!user) {
-            alert("You must be logged in to unsave an event.");
-            return;
-        }
-
-        try {
-            const savedEventsQuery = query(
-                collection(firestore, "SavedEvents"),
-                where("userId", "==", user.uid),
-                where("eventId", "==", eventId)
-            );
-
-            const snapshot = await getDocs(savedEventsQuery);
-
-            if (snapshot.empty) {
-                alert("Event was not found in saved events.");
-                return;
-            }
-
-            // ✅ Proper deletion
-            const deletions = snapshot.docs.map((docSnap) => deleteDoc(docSnap.ref));
-            await Promise.all(deletions);
-
-            // ✅ Update local state to reflect removal
-            setSavedEvents((prev) => prev.filter((event) => event.id !== eventId));
-
-            alert("Event unsaved!");
-        } catch (error) {
-            console.error("Unsave failed:", error);
-            alert("Failed to unsave event.");
-        }
-    };
-
-
-
-
-
     const handleLogout = async () => {
         await signOut(auth);
         navigate("/login");
     };
 
     return (
-        <div className={"container"}>
+        <div className="container">
             <SideNavbar />
             <div style={{ marginLeft: "250px" }}>
-                <Header pageTitle={"Events"}/>
+                <Header pageTitle="Events" />
 
                 <SearchBar
                     value={searchTerm}
                     onChange={handleSearch}
                     placeholder="Enter event title..."
                 />
-                <select value={selectedOrganization} onChange={handleOrgFilterChange} style={styles.searchBar}>
+                <select
+                    value={selectedOrganization}
+                    onChange={handleOrgFilterChange}
+                    style={styles.searchBar}
+                >
                     <option value="">Filter by Organization</option>
-                    {organizationOptions.map((org, idx) => (
-                        <option key={idx} value={org}>{org}</option>
+                    {organizationOptions.map((org, i) => (
+                        <option key={i} value={org}>{org}</option>
                     ))}
                 </select>
 
                 {/* Saved Events */}
-                {/* Show saved events only for non-admins */}
                 {role !== "Admin" && (
                     <>
                         <h2 style={styles.header}>Saved Events</h2>
                         {savedEvents.length > 0 ? (
-                            <ul style={styles.list}>
-                                {savedEvents.map((event) => (
-                                    <li key={event.id} style={styles.listItem}>
-                                        <div style={{flex: 1}}>
-                                            <h3>{event.title || "Untitled Event"}</h3>
-                                            <p>{event.date}</p>
-                                        </div>
-                                        <div style={{display: "flex", gap: "10px"}}>
-                                            <button onClick={() => handleViewDetails(event)} style={styles.button}>
-                                                View Details
-                                            </button>
-                                            <button
-                                                onClick={() => handleUnsaveEvent(event.id)}
-                                                style={{...styles.button, backgroundColor: "#BF6319", color: "white"}}
-                                            >
-                                                Unsave
-                                            </button>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
+                            savedEvents.map((ev) => (
+                                <EventCardRectangular
+                                    key={ev.id}
+                                    event={ev}
+                                    currentUser={{ uid: auth.currentUser.uid, role }}
+                                    onRegister={handleRegister}
+                                />
+                            ))
                         ) : <p>No saved events.</p>}
                     </>
                 )}
 
+                {/* Recommended Events */}
+                <h2 style={styles.header}>Recommended Events</h2>
+                {recommendedEvents.length > 0 ? (
+                    recommendedEvents.map((ev) => (
+                        <EventCardRectangular
+                            key={ev.id}
+                            event={ev}
+                            currentUser={{ uid: auth.currentUser.uid, role }}
+                            onRegister={handleRegister}
+                        />
+                    ))
+                ) : <p>No recommended events.</p>}
 
-                {/* Admin Controls */}
-                {role === "Admin" && (
-                    <>
-                        <h2 style={styles.header}>Admin Event Controls</h2>
-                        <ul style={styles.list}>
-                            {events.map((event) => {
-                                const status = event.status || "Active";
-                                return (
-                                    <li key={event.id} style={styles.listItem}>
-                                        <div style={{ flex: 1 }}>
-                                            <h3>{event.title}</h3>
-                                            <p>{event.description}</p>
-                                            <p><strong>Status:</strong> {status}</p>
-                                        </div>
-                                        <button
-                                            onClick={() =>
-                                                updateEventStatus(event.id, status === "Suspended" ? "Active" : "Suspended")
-                                            }
-                                            style={{
-                                                ...styles.button,
-                                                backgroundColor: status === "Suspended" ? "#28a745" : "#dc3545",
-                                                color: "white"
-                                            }}
-                                        >
-                                            {status === "Suspended" ? "Unsuspend" : "Suspend"}
-                                        </button>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </>
-                )}
-
-                {/* Events */}
+                {/* Regular Events */}
                 <h2 style={styles.header}>Events</h2>
-                <ul style={styles.list}>
-                    {filteredEvents.map((event) => (
-                        <li key={event.id} style={styles.listItem}>
-                            <div style={{ flex: 1 }}>
-                                <h3>{event.title || "Untitled Event"}</h3>
-                            </div>
-                            <div style={{ display: "flex", gap: "10px" }}>
-                                <button onClick={() => handleViewDetails(event)} style={styles.button}>
-                                    View Details
-                                </button>
-                                {event.verified ? (
-                                    <>
-                                        <button
-                                            onClick={() => handleRegister(event.id)}
-                                            style={{ ...styles.button, backgroundColor: "#12491B", color: "white" }}
-                                        >
-                                            Register
-                                        </button>
-                                        <button
-                                            onClick={() => handleSaveEvent(event.id)}
-                                            style={{ ...styles.button, backgroundColor: "#FFA500", color: "white" }}
-                                        >
-                                            Save
-                                        </button>
-                                    </>
-                                ) : (
-                                    <span style={{ color: "gray", fontSize: "12px", alignSelf: "center" }}>
-                    Awaiting Verification
-                  </span>
-                                )}
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+                {filteredEvents.map((ev) => (
+                    <EventCardRectangular
+                        key={ev.id}
+                        event={ev}
+                        currentUser={{ uid: auth.currentUser.uid, role }}
+                        onRegister={handleRegister}
+                    />
+                ))}
 
                 {selectedEvent && (
                     <div style={styles.detailsContainer}>
                         <h3>Event Details</h3>
-                        <p><strong>Organization:</strong> {selectedEvent.organizationName || "Not specified"}</p>
+                        <p><strong>Organization:</strong> {selectedEvent.organizationName || "N/A"}</p>
                         <p><strong>Category:</strong> {selectedEvent.category || "N/A"}</p>
-                        <p><strong>Description:</strong> {selectedEvent.description || "No description available."}</p>
-                        <p><strong>Location:</strong> {selectedEvent.location || "Unknown"}</p>
+                        <p><strong>Description:</strong> {selectedEvent.description || "No description."}</p>
+                        <p><strong>Location:</strong> {selectedEvent.location || "TBD"}</p>
                         <p><strong>Date:</strong> {selectedEvent.date || "TBD"}</p>
                     </div>
                 )}
@@ -375,25 +237,15 @@ function Events() {
 const styles = {
     container: { textAlign: "center", padding: "20px", backgroundColor: "#F2EBE9" },
     list: { listStyle: "none", padding: "0" },
-    headerContainer: {
-        display: "flex", alignItems: "center", justifyContent: "center",
-        gap: "10px", marginBottom: "20px"
-    },
-    logo: { width: "50px", height: "50px" },
     header: { fontSize: "24px", fontWeight: "bold" },
-    listItem: {
-        padding: "10px", border: "1px solid #ddd", margin: "10px",
-        borderRadius: "5px", backgroundColor: "#f9f9f9",
-        display: "flex", justifyContent: "space-between", alignItems: "center"
-    },
-    button: {
-        padding: "8px 12px", backgroundColor: "#CDE0CA", fontSize: "12px",
-        color: "black", border: "none", cursor: "pointer", borderRadius: "5px"
-    },
     detailsContainer: {
-        marginTop: "20px", padding: "15px", border: "1px solid #ddd",
-        borderRadius: "10px", backgroundColor: "#e9ecef"
+        marginTop: "20px",
+        padding: "15px",
+        border: "1px solid #ddd",
+        borderRadius: "10px",
+        backgroundColor: "#e9ecef"
     }
 };
 
 export default Events;
+
