@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
     collection, getDocs, addDoc, serverTimestamp, deleteDoc,
     doc, getDoc, updateDoc, query, where
