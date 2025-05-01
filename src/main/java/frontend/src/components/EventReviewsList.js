@@ -11,7 +11,9 @@ function EventReviewsList({ eventId }) {
                 const reviewsRef = collection(firestore, "Reviews");
                 const q = query(reviewsRef, where("eventId", "==", eventId));
                 const querySnapshot = await getDocs(q);
-                const reviewsData = querySnapshot.docs.map(doc => doc.data());
+                const reviewsData = querySnapshot.docs
+                    .map(doc => doc.data())
+                    .filter(review => !review.flagged); // ✅ Filter out flagged reviews
                 setReviews(reviewsData);
             } catch (error) {
                 console.error("Error fetching reviews:", error);
