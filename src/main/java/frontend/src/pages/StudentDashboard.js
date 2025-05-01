@@ -22,14 +22,19 @@ import Header from "../components/Header";
 
 import EventReviewForm from "../components/EventReviewForm";
 import EventReviewsList from "../components/EventReviewsList";
+import AnnouncementCard from "../components/AnnouncementCard";
 
 function StudentDashboard() {
     const [filteredEvents, setFilteredEvents] = useState([]);
     const [registeredEvents, setRegisteredEvents] = useState([]);
     const navigate = useNavigate();
+    const [announcements, setAnnouncements] = useState([]);
+
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         fetchEvents();
+        fetchAnnouncements();
     }, []);
 
     const fetchEvents = async () => {
@@ -70,6 +75,19 @@ function StudentDashboard() {
             setRegisteredEvents(registered);
         } catch (error) {
             console.error("Error fetching events:", error);
+        }
+    };
+    const fetchAnnouncements = async () => {
+        try {
+            const annRef = collection(firestore, 'Announcements');
+            const snap = await getDocs(annRef);
+            const list = snap.docs
+                .map(d => ({ id: d.id, ...d.data() }))
+                .sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
+            setAnnouncements(list);
+        } catch (err) {
+            console.error(err);
+            setError("Failed to load announcements.");
         }
     };
 
@@ -214,7 +232,30 @@ function StudentDashboard() {
                     </div>
                     <div className={"right-column"}>
                         <h3 className={"subHeader"}>Announcements</h3>
-
+                        {announcements.length > 0 ? (
+                            announcements.map((a) => (
+                                <AnnouncementCard
+                                    key={a.id}
+                                    id={a.id}
+                                    text={a.text}
+                                    editable={false}
+                                    editingText={""}
+                                    onChangeText={() => {
+                                    }}
+                                    onSaveEdit={() => {
+                                    }}
+                                    onCancelEdit={() => {
+                                    }}
+                                    onEditClick={() => {
+                                    }}
+                                    onDelete={() => {
+                                    }}
+                                    canEdit={false}
+                                />
+                            ))
+                        ) : (
+                            <p className="text-gray-500">No announcements yet.</p>
+                        )}
                         <h3 className={"subHeader"}>Messages</h3>
                     </div>
                 </div>
