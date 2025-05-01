@@ -141,7 +141,7 @@ function OrganizationLiaisonDashboard() {
                 note: "",
                 status: "Pending",
                 approvals: [
-                    { role: "Organization Liaison", status: "Pending Approval" },
+                    { role: "Organization Liaison", status: "Approved" },
                     { role: "Event Moderator", status: "Pending Approval" },
                     { role: "Admin", status: "Pending Approval" }
                 ],

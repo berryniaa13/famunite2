@@ -12,19 +12,23 @@ import {
 import { firestore } from '../context/firebaseConfig';
 import SideNavbar from "../components/SideNavbar";
 import famUniteLogo from "../assets/FAMUniteLogoNude.png";
+import Header from "../components/Header";
+import EventCard from "../components/EventCard";
+import AnnouncementCard from "../components/AnnouncementCard";
 
 function DashboardPage() {
     const navigate = useNavigate();
     const [role, setRole] = useState(null);
     const [users, setUsers] = useState([]);
-    const [announcements, setAnnouncements] = useState([]);         // ← new
-    const [newAnnouncement, setNewAnnouncement] = useState('');     // ← new
-    const [editingId, setEditingId] = useState(null);               // ← new
-    const [editingText, setEditingText] = useState('');             // ← new
+    const [announcements, setAnnouncements] = useState([]);
+    const [newAnnouncement, setNewAnnouncement] = useState('');
+    const [editingId, setEditingId] = useState(null);
+    const [editingText, setEditingText] = useState('');
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedUser, setSelectedUser] = useState(null);
     const [error, setError] = useState(null);
+    const [approvalEvents, setApprovalEvents] = useState([]);
 
     useEffect(() => {
         const storedRole = localStorage.getItem('userRole');
@@ -41,10 +45,11 @@ function DashboardPage() {
             setLoading(false);
         }
 
-        fetchAnnouncements();  // ← new
+        fetchAnnouncements();
+        fetchApprovalEvents();
     }, [navigate]);
 
-    // ——— Fetch users (unchanged) ———
+    // ——— Fetch users  ———
     const fetchUsers = async () => {
         try {
             const usersRef = collection(firestore, 'User');
@@ -58,6 +63,19 @@ function DashboardPage() {
             setError("Failed to load users.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchApprovalEvents = async () => {
+        try {
+            const eventsRef = collection(firestore, "Event");
+            const snapshot = await getDocs(eventsRef);
+            const unapproved = snapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() }))
+                .filter(event => event.verified === false);
+            setApprovalEvents(unapproved);
+        } catch (error) {
+            console.error("Error fetching approval events:", error);
         }
     };
 
@@ -125,9 +143,9 @@ function DashboardPage() {
             setError("Failed to delete announcement.");
         }
     };
-    // ————————————————————
 
-    // ——— User management (unchanged) ———
+
+    // ——— User management ———
     const updateUserStatus = async (userId, newStatus) => { /* … */ };
     const handleActivate   = id => updateUserStatus(id, "Active");
     const handleDeactivate = id => updateUserStatus(id, "Inactive");
@@ -143,166 +161,155 @@ function DashboardPage() {
         (u.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (u.email|| '').toLowerCase().includes(searchTerm.toLowerCase())
     );
-    // —————————————————————————
+
 
     if (loading) return <div>Loading...</div>;
 
     return (
-        <div style={styles.container}>
+        <div className={"container"}>
             <SideNavbar />
             <div style={{ marginLeft: "250px" }}>
-                <div style={styles.headerContainer}>
-                    <img src={famUniteLogo} alt="Logo" style={styles.logo} />
-                    <h2 style={styles.header}> Admin Home </h2>
-                </div>
-
+                <Header pageTitle="Admin Home" />
                 {error && <div style={styles.errorNotification}>{error}</div>}
+                <div className={"dashboard-container"}>
+                    <div className={"left-column"}>
+                        <h3 className={"subHeader"}>Approval Needed</h3>
+                        <div className={"horizontalContainer"}>
+                            <ul className={"horizontalList"}>
+                                {approvalEvents.map((event) => (
+                                    <EventCard
+                                        key={event.id}
+                                        event={event}
+                                    />
+                                ))}
 
-                {/* ——— Announcements List (all users) ——— */}
-                <div style={styles.announcementsList}>
-                    <h3>Announcements</h3>
-                    {announcements.length ? announcements.map(a => (
-                        <div key={a.id} style={styles.announcementItem}>
-                            {editingId === a.id ? (
-                                <>
-                  <textarea
-                      rows={2}
-                      value={editingText}
-                      onChange={e => setEditingText(e.target.value)}
-                      style={styles.textarea}
-                  />
-                                    <button onClick={handleSaveEdit} style={styles.button}>Save</button>
-                                    <button
-                                        onClick={handleCancelEdit}
-                                        style={{ ...styles.button, backgroundColor: '#6c757d', marginLeft: 8 }}
-                                    >
-                                        Cancel
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    <span>{a.text}</span>
-                                    {role === 'Admin' && (
-                                        <span style={{ marginLeft: 10 }}>
-                      <button
-                          onClick={() => handleEditClick(a.id, a.text)}
-                          style={styles.button}
-                      >
-                        Edit
-                      </button>
-                      <button
-                          onClick={() => handleDeleteAnnouncement(a.id)}
-                          style={{ ...styles.button, backgroundColor: '#dc3545', marginLeft: 4 }}
-                      >
-                        Delete
-                      </button>
-                    </span>
-                                    )}
-                                </>
-                            )}
+                            </ul>
                         </div>
-                    )) : (
-                        <p>No announcements yet.</p>
-                    )}
+
+                        {/* ——— User-management UI (unchanged) ——— */}
+                        {role === 'Admin' ? (
+                            <>
+                                <h3 className={"subHeader"}>Users</h3>
+                                <input
+                                    type="text"
+                                    placeholder="Search users..."
+                                    value={searchTerm}
+                                    onChange={handleSearch}
+                                    style={styles.searchBar}
+                                />
+                                <ul style={styles.list}>
+                                    {filteredUsers.map(u => {
+                                        const status = u.status || "Inactive";
+                                        return (
+                                            <li key={u.id} style={styles.listItem}>
+                                                <div style={{ flex: 1 }}>
+                                                    <h3>{u.name || "Unnamed User"}</h3>
+                                                    <p>{u.email}</p>
+                                                    <p><strong>Status:</strong> {status}</p>
+                                                </div>
+                                                <div style={{ display: "flex", gap: "10px" }}>
+                                                    <button onClick={() => handleViewDetails(u)} style={styles.button}>
+                                                        View Details
+                                                    </button>
+                                                    {status === "Active" && (
+                                                        <button
+                                                            onClick={() => handleDeactivate(u.id)}
+                                                            style={{ ...styles.button, backgroundColor: '#dc3545' }}
+                                                        >
+                                                            Deactivate
+                                                        </button>
+                                                    )}
+                                                    {status === "Inactive" && (
+                                                        <button
+                                                            onClick={() => handleActivate(u.id)}
+                                                            style={{ ...styles.button, backgroundColor: '#28a745' }}
+                                                        >
+                                                            Activate
+                                                        </button>
+                                                    )}
+                                                    {status !== "Banned" ? (
+                                                        <button
+                                                            onClick={() => handleBan(u.id, status)}
+                                                            style={{ ...styles.button, backgroundColor: '#6c757d' }}
+                                                        >
+                                                            Ban
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleBan(u.id, status)}
+                                                            style={{ ...styles.button, backgroundColor: '#28a745' }}
+                                                        >
+                                                            Unban
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </>
+                        ) : (
+                            <p>You do not have access to the admin dashboard.</p>
+                        )}
+
+                        {selectedUser && (
+                            <div style={styles.detailsContainer}>
+                                <h3>User Details</h3>
+                                <p><strong>ID:</strong> {selectedUser.id}</p>
+                                <p><strong>Name:</strong> {selectedUser.name || "No name provided"}</p>
+                                <p><strong>Email:</strong> {selectedUser.email || "No email available"}</p>
+                                <p><strong>Role:</strong> {selectedUser.role || "N/A"}</p>
+                                <p><strong>Status:</strong> {selectedUser.status || "Inactive"}</p>
+                            </div>
+                        )}
+                    </div>
+                    <div className={"right-column"}>
+                        <h3 className={"subHeader"}>Announcements</h3>
+                            {/* ——— Announcements List (all users) ——— */}
+                            <div style={styles.announcementsList}>
+                                {announcements.length > 0 ? (
+                                    announcements.map((a) => (
+                                        <AnnouncementCard
+                                            key={a.id}
+                                            id={a.id}
+                                            text={a.text}
+                                            editable={editingId === a.id}
+                                            editingText={editingText}
+                                            onChangeText={setEditingText}
+                                            onSaveEdit={handleSaveEdit}
+                                            onCancelEdit={handleCancelEdit}
+                                            onEditClick={() => handleEditClick(a.id, a.text)}
+                                            onDelete={() => handleDeleteAnnouncement(a.id)}
+                                            canEdit={role === "Admin"}
+                                        />
+                                    ))
+                                ) : (
+                                    <p className="text-gray-500">No announcements yet.</p>
+                                )}
+                            </div>
+
+                            {/* ——— New Announcement Form (Admins only) ——— */}
+                            {role === 'Admin' && (
+                                <div style={styles.announcementContainer}>
+                                    <h3>Post New Announcement</h3>
+                                    <textarea
+                                        rows={3}
+                                        placeholder="Your announcement…"
+                                        value={newAnnouncement}
+                                        onChange={e => setNewAnnouncement(e.target.value)}
+                                        style={styles.textarea}
+                                    />
+                                    <button
+                                        onClick={handleCreateAnnouncement}
+                                        style={{ ...styles.button, marginTop: 8 }}
+                                    >
+                                        Publish
+                                    </button>
+                                </div>
+                            )}
+                        <h3 className={"subHeader"}>Messages</h3>
+                    </div>
                 </div>
-
-                {/* ——— New Announcement Form (Admins only) ——— */}
-                {role === 'Admin' && (
-                    <div style={styles.announcementContainer}>
-                        <h3>Post New Announcement</h3>
-                        <textarea
-                            rows={3}
-                            placeholder="Your announcement…"
-                            value={newAnnouncement}
-                            onChange={e => setNewAnnouncement(e.target.value)}
-                            style={styles.textarea}
-                        />
-                        <button
-                            onClick={handleCreateAnnouncement}
-                            style={{ ...styles.button, marginTop: 8 }}
-                        >
-                            Publish
-                        </button>
-                    </div>
-                )}
-
-                {/* ——— User-management UI (unchanged) ——— */}
-                {role === 'Admin' ? (
-                    <>
-                        <input
-                            type="text"
-                            placeholder="Search users..."
-                            value={searchTerm}
-                            onChange={handleSearch}
-                            style={styles.searchBar}
-                        />
-                        <ul style={styles.list}>
-                            {filteredUsers.map(u => {
-                                const status = u.status || "Inactive";
-                                return (
-                                    <li key={u.id} style={styles.listItem}>
-                                        <div style={{ flex: 1 }}>
-                                            <h3>{u.name || "Unnamed User"}</h3>
-                                            <p>{u.email}</p>
-                                            <p><strong>Status:</strong> {status}</p>
-                                        </div>
-                                        <div style={{ display: "flex", gap: "10px" }}>
-                                            <button onClick={() => handleViewDetails(u)} style={styles.button}>
-                                                View Details
-                                            </button>
-                                            {status === "Active" && (
-                                                <button
-                                                    onClick={() => handleDeactivate(u.id)}
-                                                    style={{ ...styles.button, backgroundColor: '#dc3545' }}
-                                                >
-                                                    Deactivate
-                                                </button>
-                                            )}
-                                            {status === "Inactive" && (
-                                                <button
-                                                    onClick={() => handleActivate(u.id)}
-                                                    style={{ ...styles.button, backgroundColor: '#28a745' }}
-                                                >
-                                                    Activate
-                                                </button>
-                                            )}
-                                            {status !== "Banned" ? (
-                                                <button
-                                                    onClick={() => handleBan(u.id, status)}
-                                                    style={{ ...styles.button, backgroundColor: '#6c757d' }}
-                                                >
-                                                    Ban
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    onClick={() => handleBan(u.id, status)}
-                                                    style={{ ...styles.button, backgroundColor: '#28a745' }}
-                                                >
-                                                    Unban
-                                                </button>
-                                            )}
-                                        </div>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </>
-                ) : (
-                    <p>You do not have access to the admin dashboard.</p>
-                )}
-
-                {selectedUser && (
-                    <div style={styles.detailsContainer}>
-                        <h3>User Details</h3>
-                        <p><strong>ID:</strong> {selectedUser.id}</p>
-                        <p><strong>Name:</strong> {selectedUser.name || "No name provided"}</p>
-                        <p><strong>Email:</strong> {selectedUser.email || "No email available"}</p>
-                        <p><strong>Role:</strong> {selectedUser.role || "N/A"}</p>
-                        <p><strong>Status:</strong> {selectedUser.status || "Inactive"}</p>
-                    </div>
-                )}
-
-                <button onClick={handleLogout} style={styles.logoutButton}>Logout</button>
             </div>
         </div>
     );

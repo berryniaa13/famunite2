@@ -90,6 +90,17 @@ const EventVerifyCard = ({ event, currentUserRole, onClose }) => {
         }
     };
 
+    const handleResolveFlag = async () => {
+        try {
+            const eventRef = doc(db, "Event", event.id);
+            await updateDoc(eventRef, { flagged: false });
+            alert("Event has been unflagged.");
+            onClose(); // Refresh or close modal
+        } catch (error) {
+            console.error("Error resolving flagged content:", error);
+        }
+    };
+
 
     const handleDeny = async () => {
         try {
@@ -130,6 +141,11 @@ const EventVerifyCard = ({ event, currentUserRole, onClose }) => {
             <div style={styles.card}>
                 <button onClick={onClose} style={styles.closeBtn}>×</button>
                 <div style={styles.scrollContainer}>
+                    {event.flagged && (
+                        <div style={styles.flagBanner}>
+                            ⚠️ This event has been <strong>flagged for violating community guidelines</strong>.
+                        </div>
+                    )}
                     <div style={styles.outer}>
                         <div style={styles.imageContainer}>
                             <img
@@ -208,6 +224,13 @@ const EventVerifyCard = ({ event, currentUserRole, onClose }) => {
                     >
                         {event.status === "Suspended" ? "Unsuspend" : "Suspend"}
                     </button>
+                    {event.flagged && currentUserRole === "Event Moderator" && (
+                        <button onClick={handleResolveFlag} style={styles.resolveBtn}>
+                            Resolve Content
+                        </button>
+                    )}
+
+
 
 
                 </div>
@@ -255,6 +278,26 @@ const styles = {
         height: "100%",
         overflow: "hidden",
         borderRadius: '8px',
+    },
+    flagBanner: {
+        backgroundColor: "#f8d7da",
+        color: "#721c24",
+        padding: "12px",
+        border: "1px solid #f5c6cb",
+        borderRadius: "6px",
+        marginBottom: "16px",
+        textAlign: "center",
+        fontWeight: "500",
+    },
+    resolveBtn: {
+        marginTop: "16px",
+        padding: "10px 16px",
+        backgroundColor: "#c82333", // bold red
+        color: "#fff",
+        width: "180px",
+        border: "none",
+        borderRadius: "6px",
+        cursor: "pointer"
     },
     image: {
         width: "100%",

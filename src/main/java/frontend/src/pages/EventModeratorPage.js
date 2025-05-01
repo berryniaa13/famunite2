@@ -15,18 +15,34 @@ import EventCardRectangular from "../components/EventCardRectangular";
 import Header from "../components/Header";
 import SearchBar from "../components/SearchBar";
 import EventCard from "../components/EventCard";
+import AnnouncementCard from "../components/AnnouncementCard";
 
 
 function EventModeratorPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [events, setEvents] = useState([]);
     const [filteredEvents, setFilteredEvents] = useState([]);
+
     const [reviews, setReviews] = useState([]);
+
+    const [flaggedEvents, setFlaggedEvents] = useState([]);
+    const [approvalEvents, setApprovalEvents] = useState([]);
+    const [announcements, setAnnouncements] = useState([]);
+    const [error, setError] = useState(null);
+
+
+
     const navigate = useNavigate();
 
     useEffect(() => {
         fetchEvents();
+
         fetchReviews();
+
+        fetchFlaggedEvents();
+        fetchApprovalEvents();
+        fetchAnnouncements();
+
     }, []);
 
     const fetchEvents = async () => {
@@ -43,6 +59,7 @@ function EventModeratorPage() {
             console.error("Error fetching events:", error);
         }
     };
+
 
     const fetchReviews = async () => {
         try {
@@ -70,6 +87,47 @@ function EventModeratorPage() {
             console.error("Error fetching reviews:", error);
         }
     };
+
+    const fetchFlaggedEvents = async () => {
+        try {
+            const eventsRef = collection(firestore, "Event");
+            const snapshot = await getDocs(eventsRef);
+            const flagged = snapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() }))
+                .filter(event => event.flagged === true);
+            setFlaggedEvents(flagged);
+        } catch (error) {
+            console.error("Error fetching flagged events:", error);
+        }
+    };
+    const fetchAnnouncements = async () => {
+        try {
+            const annRef = collection(firestore, 'Announcements');
+            const snap = await getDocs(annRef);
+            const list = snap.docs
+                .map(d => ({ id: d.id, ...d.data() }))
+                .sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
+            setAnnouncements(list);
+        } catch (err) {
+            console.error(err);
+            setError("Failed to load announcements.");
+        }
+    };
+
+    const fetchApprovalEvents = async () => {
+        try {
+            const eventsRef = collection(firestore, "Event");
+            const snapshot = await getDocs(eventsRef);
+            const unapproved = snapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() }))
+                .filter(event => event.verified === false);
+            setApprovalEvents(unapproved);
+        } catch (error) {
+            console.error("Error fetching approval events:", error);
+        }
+    };
+
+
 
 
     const handleSearch = (e) => {
@@ -112,8 +170,8 @@ function EventModeratorPage() {
     return (
         <div className={"container"}>
             <SideNavbar />
-            <div style={{ marginLeft: "250px" }}>
-                <Header pageTitle="Home" />
+            <div style={{marginLeft: "250px"}}>
+                <Header pageTitle="Home"/>
                 <SearchBar
                     value={searchTerm}
                     onChange={handleSearch}
@@ -121,10 +179,10 @@ function EventModeratorPage() {
                 />
                 <div className={"dashboard-container"}>
                     <div className={"left-column"}>
-                        <h3 className={"subHeader"}>Needs Action</h3>
+                        <h3 className={"subHeader"}>Resolve Flagged Content</h3>
                         <div className={"horizontalContainer"}>
                             <ul className={"horizontalList"}>
-                                {filteredEvents.map((event) => (
+                                {flaggedEvents.map((event) => (
                                     <EventCard
                                         key={event.id}
                                         event={event}
@@ -133,41 +191,78 @@ function EventModeratorPage() {
                             </ul>
                         </div>
 
-                        <h3 className={"subHeader"}>Recent Feedback</h3>
-                        <div className={"feedbackContainer"}>
-                            {reviews.map((review) => (
-                                <div
-                                    key={review.id}
-                                    style={{
-                                        backgroundColor: review.flagged ? "#ffe6e6" : "#f9f9f9",
-                                        padding: "10px",
-                                        borderRadius: "8px",
-                                        marginBottom: "10px",
-                                        border: review.flagged ? "1px solid red" : "1px solid #ccc"
-                                    }}
-                                >
-                                    <p><strong>Event:</strong> {review.eventTitle}</p>
-                                    <p><strong>Rating:</strong> ⭐ {review.rating}</p>
-                                    <p><strong>Comment:</strong> {review.comment}</p>
-                                    <button
+                        <h3 className={"subHeader"}>Approval Needed</h3>
+                        <div className={"horizontalContainer"}>
+                            <ul className={"horizontalList"}>
+                                {approvalEvents.map((event) => (
+                                    <EventCard
+                                        key={event.id}
+                                        event={event}
+                                    />
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 className={"subHeader"}>Recent Feedback</h3>
+                            <div className={"feedbackContainer"}>
+                                {reviews.map((review) => (
+                                    <div
+                                        key={review.id}
                                         style={{
-                                            backgroundColor: review.flagged ? "#ffc4c4" : "#d1e7dd",
-                                            border: "none",
-                                            borderRadius: "4px",
-                                            padding: "5px 10px",
-                                            cursor: "pointer"
+                                            backgroundColor: review.flagged ? "#ffe6e6" : "#f9f9f9",
+                                            padding: "10px",
+                                            borderRadius: "8px",
+                                            marginBottom: "10px",
+                                            border: review.flagged ? "1px solid red" : "1px solid #ccc"
                                         }}
-                                        onClick={() => handleToggleFlagReview(review.id, review.flagged)}
                                     >
-                                        {review.flagged ? "✅ Unflag" : "🚩 Flag"}
-                                    </button>
-                                </div>
-                            ))}
+                                        <p><strong>Event:</strong> {review.eventTitle}</p>
+                                        <p><strong>Rating:</strong> ⭐ {review.rating}</p>
+                                        <p><strong>Comment:</strong> {review.comment}</p>
+                                        <button
+                                            style={{
+                                                backgroundColor: review.flagged ? "#ffc4c4" : "#d1e7dd",
+                                                border: "none",
+                                                borderRadius: "4px",
+                                                padding: "5px 10px",
+                                                cursor: "pointer"
+                                            }}
+                                            onClick={() => handleToggleFlagReview(review.id, review.flagged)}
+                                        >
+                                            {review.flagged ? "✅ Unflag" : "🚩 Flag"}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                     <div className={"right-column"}>
                         <h3 className={"subHeader"}>Announcements</h3>
-
+                        {announcements.length > 0 ? (
+                            announcements.map((a) => (
+                                <AnnouncementCard
+                                    key={a.id}
+                                    id={a.id}
+                                    text={a.text}
+                                    editable={false}
+                                    editingText={""}
+                                    onChangeText={() => {
+                                    }}
+                                    onSaveEdit={() => {
+                                    }}
+                                    onCancelEdit={() => {
+                                    }}
+                                    onEditClick={() => {
+                                    }}
+                                    onDelete={() => {
+                                    }}
+                                    canEdit={false}
+                                />
+                            ))
+                        ) : (
+                            <p className="text-gray-500">No announcements yet.</p>
+                        )}
                         <h3 className={"subHeader"}>Messages</h3>
                     </div>
                 </div>
