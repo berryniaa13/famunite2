@@ -59,7 +59,7 @@ function LoginPage() {
                     navigate('/admin-dashboard');
                     break;
                 case 'Organization Liaison':
-                    navigate('/organization-liason-dashboard');
+                    navigate('/organization-liaison-dashboard');
                     break;
                 case 'Event Moderator':
                     navigate('/event-moderator-dashboard');

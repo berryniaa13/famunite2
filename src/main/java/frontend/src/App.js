@@ -1,10 +1,10 @@
 import { Navigate } from "react-router-dom";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import DashboardPage from './pages/Dashboard';
+import DashboardPage from './pages/home/Dashboard';
 import LoginPage from './pages/LoginPage';
-import StudentDashboard from "./pages/StudentDashboard";
-import EventModeratorPage from "./pages/EventModeratorPage";
-import OrganizationLiasonPage from "./pages/OrganizationLiasonPage";
+import StudentDashboard from "./pages/home/StudentDashboard";
+import EventModeratorPage from "./pages/home/EventModeratorPage";
+import OrganizationLiasonPage from "./pages/home/OrganizationLiaisonPage";
 import Events from "./pages/Events";
 import Profile from "./pages/Profile";
 import Messages from "./pages/Messages";
@@ -22,7 +22,7 @@ function App() {
                 <Route path="/admin-dashboard" element={<DashboardPage />} />
                 <Route path="/student-dashboard" element={<StudentDashboard />} />
                 <Route path="/event-moderator-dashboard" element={<EventModeratorPage />} />
-                <Route path="/organization-liason-dashboard" element={<OrganizationLiasonPage />} />
+                <Route path="/organization-liaison-dashboard" element={<OrganizationLiasonPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/events" element={<Events />} />
                 <Route path="/profile" element={<Profile />} />

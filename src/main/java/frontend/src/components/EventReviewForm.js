@@ -23,7 +23,7 @@ function EventReviewForm({ eventId }) {
             setRating(0);
             setComment("");
         } catch (err) {
-            console.error("Error submitCing review:", err);
+            console.error("Error submitting review:", err);
             alert("Failed to submit review.");
         }
     };
@@ -44,12 +44,24 @@ function EventReviewForm({ eventId }) {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows="3"
-                style={{ width: "100%", marginTop: "5px" }}
+                style={styles.textarea}
             />
             <br />
             <button type="submit" style={{ marginTop: "5px" }}>Submit Review</button>
         </form>
     );
+}
+
+const styles = {
+    textarea: {
+        width: "100%",
+        minHeight: "80px",
+        marginTop: "12px",
+        padding: "10px",
+        borderRadius: "6px",
+        border: "1px solid #ccc",
+        fontSize: "14px"
+    },
 }
 
 export default EventReviewForm;

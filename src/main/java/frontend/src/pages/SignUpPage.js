@@ -44,7 +44,6 @@ function SignUpPage() {
                 role: role,
                 contact_info: contactInfo,
                 name: name,
-                organizationName: role === "Organization Liaison" ? organization : "",
                 status: "Active",
                 interests: interests,
                 created_at: serverTimestamp(),
@@ -52,17 +51,17 @@ function SignUpPage() {
             });
 
             if (role === "Organization Liaison" && organization) {
-                await setDoc(doc(collection(firestore, "Organizations"), organization), {
+                await setDoc(doc(collection(firestore, "Organizations")), {
                     name: organization,
                     created_at: serverTimestamp(),
-                    created_by: user.uid,
+                    liaisonId: user.uid,
                 });
             }
 
             if (role === "Student") {
                 navigate('/student-dashboard');
             } else if (role === "Organization Liaison") {
-                navigate('/organization-liason-dashboard');
+                navigate('/organization-liaison-dashboard');
             } else if (role === "Event Moderator") {
                 navigate('/event-moderator-dashboard');
             }

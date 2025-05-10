@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { auth, firestore } from "../context/firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
-import famUniteLogo from "../assets/FAMUniteLogoGreen.png";
+import profileImage from "../assets/sampleProfileImage.png";
 
 const SideNavbar = () => {
     const [role, setRole] = useState("");
@@ -30,7 +30,7 @@ const SideNavbar = () => {
             case "Student":
                 return "/student-dashboard";
             case "Organization Liaison":
-                return "/organization-liason-dashboard";
+                return "/organization-liaison-dashboard";
             case "Event Moderator":
                 return "/event-moderator-dashboard";
             default:
@@ -50,7 +50,7 @@ const SideNavbar = () => {
     return (
         <div style={styles.sidebar}>
             <div style={styles.logoContainer}>
-                <img src={famUniteLogo} alt="FAMUnite Logo" style={styles.logo} />
+                <img src={profileImage} alt="Profile Image" style={styles.logo} />
             </div>
 
             <nav style={styles.nav}>
@@ -84,8 +84,9 @@ const styles = {
         marginBottom: "20px",
     },
     logo: {
-        width: "80px",
-        height: "80px",
+        width: "55px",
+        height: "55px",
+        borderRadius: "50%",
     },
     nav: {
         display: "flex",

@@ -183,14 +183,14 @@ const styles = {
         alignItems: "stretch"
     },
     imageContainer: {
-        width: "240px",
+        maxWidth: "240px",
         height: "200px",
         overflow: "hidden",
         borderRadiusTopLeft: '8px',
         borderRadiusBottomRight: '8px'
     },
     image: {
-        width: "100%",
+        maxWidth: "100%",
         height: "100%",
         objectFit: "cover",
         display: "block",

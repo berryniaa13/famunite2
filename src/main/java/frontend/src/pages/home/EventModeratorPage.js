@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signOut } from "firebase/auth";
 import {
     collection,
     getDocs,
@@ -8,14 +7,13 @@ import {
     doc,
     getDoc
 } from "firebase/firestore";
-import { auth, firestore } from '../context/firebaseConfig';
-import SideNavbar from "../components/SideNavbar";
-import famUniteLogo from "../assets/FAMUniteLogoNude.png";
-import EventCardRectangular from "../components/EventCardRectangular";
-import Header from "../components/Header";
-import SearchBar from "../components/SearchBar";
-import EventCard from "../components/EventCard";
-import AnnouncementCard from "../components/AnnouncementCard";
+import { auth, firestore } from '../../context/firebaseConfig';
+import SideNavbar from "../../components/SideNavbar";
+import Header from "../../components/Header";
+import SearchBar from "../../components/SearchBar";
+import EventCard from "../../components/EventCard";
+import AnnouncementCard from "../../components/AnnouncementCard";
+import AnnouncementsList from "../../components/AnnouncementsList";
 
 
 function EventModeratorPage() {
@@ -41,7 +39,6 @@ function EventModeratorPage() {
 
         fetchFlaggedEvents();
         fetchApprovalEvents();
-        fetchAnnouncements();
 
     }, []);
 
@@ -100,19 +97,7 @@ function EventModeratorPage() {
             console.error("Error fetching flagged events:", error);
         }
     };
-    const fetchAnnouncements = async () => {
-        try {
-            const annRef = collection(firestore, 'Announcements');
-            const snap = await getDocs(annRef);
-            const list = snap.docs
-                .map(d => ({ id: d.id, ...d.data() }))
-                .sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
-            setAnnouncements(list);
-        } catch (err) {
-            console.error(err);
-            setError("Failed to load announcements.");
-        }
-    };
+
 
     const fetchApprovalEvents = async () => {
         try {
@@ -239,30 +224,7 @@ function EventModeratorPage() {
                     </div>
                     <div className={"right-column"}>
                         <h3 className={"subHeader"}>Announcements</h3>
-                        {announcements.length > 0 ? (
-                            announcements.map((a) => (
-                                <AnnouncementCard
-                                    key={a.id}
-                                    id={a.id}
-                                    text={a.text}
-                                    editable={false}
-                                    editingText={""}
-                                    onChangeText={() => {
-                                    }}
-                                    onSaveEdit={() => {
-                                    }}
-                                    onCancelEdit={() => {
-                                    }}
-                                    onEditClick={() => {
-                                    }}
-                                    onDelete={() => {
-                                    }}
-                                    canEdit={false}
-                                />
-                            ))
-                        ) : (
-                            <p className="text-gray-500">No announcements yet.</p>
-                        )}
+                        <AnnouncementsList/>
                         <h3 className={"subHeader"}>Messages</h3>
                     </div>
                 </div>

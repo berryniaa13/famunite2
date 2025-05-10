@@ -9,12 +9,13 @@ import {
     serverTimestamp,  // ← new
     deleteDoc         // ← new
 } from 'firebase/firestore';
-import { firestore } from '../context/firebaseConfig';
-import SideNavbar from "../components/SideNavbar";
-import famUniteLogo from "../assets/FAMUniteLogoNude.png";
-import Header from "../components/Header";
-import EventCard from "../components/EventCard";
-import AnnouncementCard from "../components/AnnouncementCard";
+import { firestore } from '../../context/firebaseConfig';
+import SideNavbar from "../../components/SideNavbar";
+import famUniteLogo from "../../assets/FAMUniteLogoNude.png";
+import Header from "../../components/Header";
+import EventCard from "../../components/EventCard";
+import AnnouncementCard from "../../components/AnnouncementCard";
+import AnnouncementsList from "../../components/AnnouncementsList";
 
 function DashboardPage() {
     const navigate = useNavigate();
@@ -107,40 +108,6 @@ function DashboardPage() {
         } catch (err) {
             console.error(err);
             setError("Failed to post announcement.");
-        }
-    };
-
-    // ——— Edit & Delete ———
-    const handleEditClick = (id, text) => {
-        setEditingId(id);
-        setEditingText(text);
-    };
-    const handleCancelEdit = () => {
-        setEditingId(null);
-        setEditingText('');
-    };
-    const handleSaveEdit = async () => {
-        if (!editingText.trim()) return;
-        try {
-            await updateDoc(doc(firestore, 'Announcements', editingId), {
-                text: editingText.trim()
-            });
-            setEditingId(null);
-            setEditingText('');
-            fetchAnnouncements();
-        } catch (err) {
-            console.error(err);
-            setError("Failed to update announcement.");
-        }
-    };
-    const handleDeleteAnnouncement = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this announcement?")) return;
-        try {
-            await deleteDoc(doc(firestore, 'Announcements', id));
-            fetchAnnouncements();
-        } catch (err) {
-            console.error(err);
-            setError("Failed to delete announcement.");
         }
     };
 
@@ -266,27 +233,7 @@ function DashboardPage() {
                     <div className={"right-column"}>
                         <h3 className={"subHeader"}>Announcements</h3>
                             {/* ——— Announcements List (all users) ——— */}
-                            <div style={styles.announcementsList}>
-                                {announcements.length > 0 ? (
-                                    announcements.map((a) => (
-                                        <AnnouncementCard
-                                            key={a.id}
-                                            id={a.id}
-                                            text={a.text}
-                                            editable={editingId === a.id}
-                                            editingText={editingText}
-                                            onChangeText={setEditingText}
-                                            onSaveEdit={handleSaveEdit}
-                                            onCancelEdit={handleCancelEdit}
-                                            onEditClick={() => handleEditClick(a.id, a.text)}
-                                            onDelete={() => handleDeleteAnnouncement(a.id)}
-                                            canEdit={role === "Admin"}
-                                        />
-                                    ))
-                                ) : (
-                                    <p className="text-gray-500">No announcements yet.</p>
-                                )}
-                            </div>
+                            <AnnouncementsList/>
 
                             {/* ——— New Announcement Form (Admins only) ——— */}
                             {role === 'Admin' && (

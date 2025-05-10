@@ -1,33 +1,54 @@
 import React, {useEffect, useState,} from "react";
 import sampleEventImage from "../assets/sampleEventImage.jpg";
-import { doc, updateDoc, getFirestore, collection, query, where, getDocs } from "firebase/firestore";
+import {doc, updateDoc, getFirestore, collection, query, where, getDocs, deleteDoc} from "firebase/firestore";
+import {firestore} from "../context/firebaseConfig";
 
 
-const EventVerifyCard = ({ event, currentUserRole, onClose }) => {
+const EventVerifyCard = ({ event, currentUserRole, onClose , organization}) => {
     const [comment, setComment] = useState("");
     const [verifyData, setVerifyData] = useState({});
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedEvent, setEditedEvent] = useState(event); // local editable copy
     const db = getFirestore();
 
     useEffect(() => {
         const retrieveVerifyData = async () => {
             try {
-                // Build document reference for the event
-                const eventRef = doc(db, "Event", event.id); // 👈 correct way
+                const eventRef = doc(db, "Event", event.id);
 
-                const q = query(
-                    collection(db, "EventRequest"),
-                    where("event", "==", eventRef) // 👈 match using DocumentReference
-                );
+                // Fetch EventRequest document matching this event
+                const q = query(collection(db, "EventRequest"), where("event", "==", eventRef));
+                const requestSnapshot = await getDocs(q);
 
-                const querySnapshot = await getDocs(q);
-                if (!querySnapshot.empty) {
-                    const doc = querySnapshot.docs[0];
-                    setVerifyData({ id: doc.id, ...doc.data() });
+                let requestData = {};
+                if (!requestSnapshot.empty) {
+                    const requestDoc = requestSnapshot.docs[0];
+                    requestData = {
+                        id: requestDoc.id,
+                        ...requestDoc.data()
+                    };
                 } else {
                     console.log("No matching request found.");
                 }
+
+                // Fetch Registrations
+                const regQuery = query(collection(db, "Registrations"), where("eventId", "==", event.id));
+                const regSnapshot = await getDocs(regQuery);
+                const registrations = regSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                // Set both request + registrations into verifyData state
+                setVerifyData(prev => ({
+                    ...prev,
+                    ...requestData,
+                    registrations,
+                }));
+
             } catch (error) {
-                console.error("Error fetching verifyData:", error);
+                if (error.code === "unavailable") {
+                    alert("You're offline. Connect to the internet to load verification data.");
+                } else {
+                    console.error("Error retrieving event request or registrations:", error);
+                }
             }
         };
 
@@ -36,13 +57,13 @@ const EventVerifyCard = ({ event, currentUserRole, onClose }) => {
         }
     }, [event?.id, db]);
 
+
     const handleSubmit = async () => {
         try {
             if (!verifyData.id) {
                 console.error("No verifyData ID found.");
                 return;
             }
-
             // 1. Update current user's approval to "Approved"
             const updatedApprovals = verifyData.approvals.map((approval) => {
                 if (approval.role === currentUserRole) {
@@ -50,24 +71,20 @@ const EventVerifyCard = ({ event, currentUserRole, onClose }) => {
                 }
                 return approval;
             });
-
             // 2. Check if all approvals are now Approved
             const allApproved = updatedApprovals.every(
                 (approval) => approval.status === "Approved"
             );
-
             // 3. Prepare fields to update
             const fieldsToUpdate = {
                 approvals: updatedApprovals,
             };
             if (allApproved) {
-                fieldsToUpdate.status = "Approved"; // ✅ Mark the event as approved
+                fieldsToUpdate.status = "Approved"; // Mark the event as approved
             }
-
             // 4. Update Firestore
             const requestRef = doc(db, "EventRequest", verifyData.id);
             await updateDoc(requestRef, fieldsToUpdate);
-
             console.log("Approval submitted!");
             alert(allApproved ? "All approvals complete! Event Approved!" : "Verification submitted!");
             onClose();
@@ -134,6 +151,45 @@ const EventVerifyCard = ({ event, currentUserRole, onClose }) => {
         }
     };
 
+    const handleEditEvent = async () => {
+        try {
+            const eventRef = doc(firestore, "Event", event.id);
+            await updateDoc(eventRef, event);
+        } catch (error) {
+            console.error("Error updating event:", error);
+        }
+    };
+
+    const handleDeleteEvent = async () => {
+        try {
+            const eventRef = doc(firestore, "Event", event.id);
+
+            // Step 1: Find associated EventRequest
+            const requestQuery = query(
+                collection(firestore, "EventRequest"),
+                where("event", "==", eventRef) // Firestore DocumentReference match
+            );
+
+            const requestSnapshot = await getDocs(requestQuery);
+            if (!requestSnapshot.empty) {
+                // Assuming one matching request per event
+                const requestDoc = requestSnapshot.docs[0];
+                await deleteDoc(requestDoc.ref);
+                console.log("Associated EventRequest deleted.");
+            } else {
+                console.log("No EventRequest found for this event.");
+            }
+
+            // Step 2: Delete the event itself
+            await deleteDoc(eventRef);
+            console.log("Event deleted successfully.");
+
+            onClose();
+        } catch (error) {
+            console.error("Error deleting event and request:", error);
+        }
+    };
+
 
 
     return (
@@ -154,23 +210,63 @@ const EventVerifyCard = ({ event, currentUserRole, onClose }) => {
                                 style={styles.image}
                             />
                         </div>
-                        <div style={styles.body}>
-                            <h2 style={styles.title}>{event.title}</h2>
-                            <p><strong>Category:</strong> {event.category || "N/A"}</p>
-                            <p><strong>Date:</strong> {event.date || "TBD"}</p>
-                            <p><strong>Location:</strong> {event.location || "TBD"}</p>
-                            <p><strong>Description:</strong> {event.description || "No description available."}</p>
-                            <p><strong>Organization:</strong> {event.organizationName || "No organization available."}</p>
-                            {verifyData ? (
+                        {isEditing ? (
+                            <div style={styles.body}>
+                                <h2 style={styles.title}>Edit Event</h2>
+                                {['title', 'category', 'description', 'location'].map(field => (
                                     <>
-                                        <p><strong>Submitted By:</strong> {event.createdBy || "N/A"}</p>
-                                        <p><strong>Role:</strong> {verifyData.role || "N/A"}</p>
-                                        <p><strong>Status:</strong> {verifyData.status || "Pending"}</p>
+                                        <label htmlFor={field} style={styles.text}>
+                                            {field.charAt(0).toUpperCase() + field.slice(1)}
+                                        </label>
+                                        <input
+                                            key={field}
+                                            type="text"
+                                            placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                                            value={editedEvent[field]}
+                                            onChange={(e) => setEditedEvent({ ...editedEvent, [field]: e.target.value })}
+                                            style={styles.textareaEdit}
+                                        />
                                     </>
-                                ) : (
-                                    <p>Loading request info...</p>
-                                )}
-                        </div>
+                                ))}
+                                <label htmlFor={"Date"} style={styles.text}>
+                                    Date
+                                </label>
+                                <input
+                                    type="date"
+                                    value={editedEvent.date}
+                                    onChange={(e) => setEditedEvent({ ...editedEvent, date: e.target.value })}
+                                    style={styles.textareaEdit}
+                                />
+                                <button onClick={async () => {
+                                    try {
+                                        const ref = doc(firestore, "Event", event.id);
+                                        await updateDoc(ref, editedEvent);
+                                        alert("Event updated!");
+                                        setIsEditing(false);
+                                        onClose(); // refresh parent
+                                    } catch (err) {
+                                        console.error("Update failed:", err);
+                                    }
+                                }} style={styles.submitBtn}>Save Changes</button>
+                            </div>
+                        ) : (
+                            <div style={styles.body}>
+                                <h2 style={styles.title}>{event.title}</h2>
+                                <p><strong>Category:</strong> {event.category || "N/A"}</p>
+                                <p><strong>Date:</strong> {event.date || "TBD"}</p>
+                                <p><strong>Location:</strong> {event.location || "TBD"}</p>
+                                <p><strong>Description:</strong> {event.description || "No description available."}</p>
+                                <p><strong>Organization:</strong> {organization?.name || "No organization available."}</p>
+                                <p><strong>Event Status:</strong> {verifyData.status || "No status available."}</p>
+                                <p><strong>Total Registrations:</strong> {verifyData?.registrations?.length || 0}</p>
+                                {verifyData?.registrations?.map((reg, i) => (
+                                    <div key={i} style={{ fontSize: "12px", marginTop: "4px" }}>
+                                        • {reg.userId} – {new Date(reg.timestamp?.toDate?.() || reg.timestamp).toLocaleString()}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
                         <div style={styles.approvals}>
                             <p className={"subHeader"}>Approvals Needed:</p>
                             {verifyData.approvals && verifyData.approvals.length > 0 ? (
@@ -207,33 +303,45 @@ const EventVerifyCard = ({ event, currentUserRole, onClose }) => {
                     </div>
                 </div>
                 <div style={styles.footer}>
-                    <button onClick={handleSubmit} style={styles.submitBtn}>Approve</button>
-                    <button onClick={handleDeny} style={styles.denyBtn}>Deny</button>
-                    <button
-                        onClick={handleToggleSuspend}
-                        style={{
-                            marginTop: "16px",
-                            padding: "10px 16px",
-                            backgroundColor: event.status === "Suspended" ? "#dc3545" : "#6c757d", // 🔴 Red if suspended, Gray if active
-                            color: "#fff",
-                            width: "150px",
-                            border: "none",
-                            borderRadius: "6px",
-                            cursor: "pointer",
-                        }}
-                    >
-                        {event.status === "Suspended" ? "Unsuspend" : "Suspend"}
-                    </button>
+                    {["Admin", "Event Moderator"].includes(currentUserRole) ? (
+                        <>
+                            <button onClick={handleSubmit} style={styles.submitBtn}>Approve</button>
+                            <button onClick={handleDeny} style={styles.denyBtn}>Deny</button>
+                            <button
+                                onClick={handleToggleSuspend}
+                                style={{
+                                    marginTop: "16px",
+                                    padding: "10px 16px",
+                                    backgroundColor: event.status === "Suspended" ? "#dc3545" : "#6c757d",
+                                    color: "#fff",
+                                    width: "150px",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                {event.status === "Suspended" ? "Unsuspend" : "Suspend"}
+                            </button>
+                        </>
+                    ) : currentUserRole === "Organization Liaison" ? (
+                        <>
+                        <button onClick={() => setIsEditing(prev => !prev)} style={styles.denyBtn}>
+                            {isEditing ? "Cancel Edit" : "Edit"}
+                        </button>
+                        {!isEditing && (
+                            <button onClick={handleDeleteEvent} style={styles.deleteBtn}>
+                                Delete
+                            </button>)}
+                        </>
+                    ) : null}
+
                     {event.flagged && currentUserRole === "Event Moderator" && (
                         <button onClick={handleResolveFlag} style={styles.resolveBtn}>
                             Resolve Content
                         </button>
                     )}
-
-
-
-
                 </div>
+
             </div>
         </div>
     );
@@ -326,6 +434,16 @@ const styles = {
         cursor: "pointer",
         color: "#888"
     },
+    deleteBtn: {
+        marginTop: "16px",
+        padding: "10px 16px",
+        backgroundColor: "#c82333",
+        color: "#fff",
+        width: "150px",
+        border: "none",
+        borderRadius: "6px",
+        cursor: "pointer",
+    },
     title: {
         marginTop: "0px",
         marginBottom: "16px",
@@ -333,10 +451,24 @@ const styles = {
         fontWeight: "600",
         textAlign: "center"
     },
+    text: {
+        fontSize: "12px",
+        fontWeight: "600",
+    },
     textarea: {
         width: "100%",
         minHeight: "80px",
         marginTop: "12px",
+        padding: "10px",
+        borderRadius: "6px",
+        border: "1px solid #ccc",
+        fontSize: "14px"
+    },
+    textareaEdit: {
+        width: "100%",
+        maxHeight: "80px",
+        marginTop: "5px",
+        marginBottom: "6px",
         padding: "10px",
         borderRadius: "6px",
         border: "1px solid #ccc",
