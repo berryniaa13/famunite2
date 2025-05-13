@@ -154,7 +154,7 @@ const styles = {
     },
     button: {
         padding: "10px 20px",
-        backgroundColor: "#12491B",
+        backgroundColor: "var(--primary-green)",
         color: "white",
         border: "none",
         borderRadius: "5px",

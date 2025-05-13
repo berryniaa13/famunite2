@@ -53,9 +53,7 @@ function EventCreateForm({ organizationId, onEventCreated, inputStyle, buttonSty
                 createdBy: user.uid,
                 createdAt: new Date().toISOString(),
                 organizationId: organizationId || "Unknown",
-                verified: false,
-                suspended: false,
-                flagged: false,
+                status: "Pending",
             };
 
             const eventDocRef = await addDoc(collection(firestore, "Event"), eventToCreate);

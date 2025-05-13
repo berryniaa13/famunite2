@@ -165,7 +165,6 @@ function OrganizationLiaisonDashboard() {
             <div style={{ marginLeft: "250px" }}>
 
                 <Header pageTitle={"Organization Liaison Dashboard"}/>
-                <SearchBar/>
                 <div className={"dashboard-container"}>
                     <div className={"left-column"}>
                         <div style={styles.section}>

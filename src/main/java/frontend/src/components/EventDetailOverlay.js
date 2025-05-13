@@ -4,7 +4,7 @@ import { doc, getDoc, updateDoc, getFirestore } from "firebase/firestore";
 import EventReviewForm from "./EventReviewForm";
 import EventReviewsList from "./EventReviewsList";
 
-const EventDetailOverlay = ({ event, onClose, handleRegister, isRegistered }) => {
+const EventDetailOverlay = ({ event, onClose, handleRegister, isRegistered, organization }) => {
     const db = getFirestore();
     const [flagging, setFlagging] = useState(false);
     const [alreadyFlagged, setAlreadyFlagged] = useState(event.flagged);
@@ -21,11 +21,11 @@ const EventDetailOverlay = ({ event, onClose, handleRegister, isRegistered }) =>
             }
 
             const eventData = eventSnap.data();
-            if (eventData.flagged) {
+            if (eventData.status === "Flagged") {
                 alert("This event has already been flagged.");
                 setAlreadyFlagged(true);
             } else {
-                await updateDoc(eventRef, { flagged: true });
+                await updateDoc(eventRef, { status: "Flagged" });
                 alert("Event has been flagged for review.");
                 setAlreadyFlagged(true);
                 onClose(); // Optional: close after flag
@@ -60,20 +60,21 @@ const EventDetailOverlay = ({ event, onClose, handleRegister, isRegistered }) =>
                             <p><strong>Date:</strong> {event.date || "TBD"}</p>
                             <p><strong>Location:</strong> {event.location || "TBD"}</p>
                             <p><strong>Description:</strong> {event.description || "No description available."}</p>
-                            <p><strong>Organization:</strong> {event.organizationName || "No organization available."}</p>
+                            <p><strong>Organization:</strong> {organization?.name  || "No organization available."}</p>
                         </div>
                         <div style={styles.reviews}>
+                            <p className={"subHeader"}>Leave a Review:</p>
+                            <EventReviewForm eventId={event.id}/>
+
+                        </div>
+                        <div style={styles.comment}>
                             <p className={"subHeader"}>Reviews</p>
                             <EventReviewsList eventId={event.id}/>
                         </div>
-                        <div style={styles.comment}>
-                            <p className={"subHeader"}>Leave a Review:</p>
-                            <EventReviewForm eventId={event.id}/>
-                        </div>
                     </div>
                     <div style={styles.footer}>
-                        {event.verified ? (
-                            event.suspended ? (
+                        {event.status === "Approved" ? (
+                            event.status === "Suspended" ? (
                                 <span style={styles.awaiting}>Event Suspended</span>
                             ) : isRegistered ? (
                                 <span style={styles.awaiting}>Registered</span>
@@ -193,7 +194,7 @@ const styles = {
     registerBtn: {
         marginTop: "16px",
         padding: "10px 16px",
-        backgroundColor: "#12491B",
+        backgroundColor: "var(--primary-green)",
         color: "#fff",
         width: "180px",
         border: "none",
@@ -209,7 +210,7 @@ const styles = {
         borderRadius: "6px"
     },
     reviews: {
-        padding: "0px",
+        paddingRight: "10px",
     },
     comment: {
         padding: "0px",

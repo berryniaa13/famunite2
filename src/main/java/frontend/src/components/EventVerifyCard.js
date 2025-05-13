@@ -1,6 +1,6 @@
 import React, {useEffect, useState,} from "react";
 import sampleEventImage from "../assets/sampleEventImage.jpg";
-import {doc, updateDoc, getFirestore, collection, query, where, getDocs, deleteDoc} from "firebase/firestore";
+import {doc, updateDoc, getFirestore, collection, query, where, getDocs, deleteDoc, documentId} from "firebase/firestore";
 import {firestore} from "../context/firebaseConfig";
 
 
@@ -36,11 +36,34 @@ const EventVerifyCard = ({ event, currentUserRole, onClose , organization}) => {
                 const regSnapshot = await getDocs(regQuery);
                 const registrations = regSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
-                // Set both request + registrations into verifyData state
+                // Now get all the unique userIds
+                const userIds = [...new Set(registrations.map(r => r.userId))];
+
+// Batch‐fetch those users
+                let usersMap = {};
+                if (userIds.length) {
+                    // Firestore allows up to 10 in an "in" query
+                    const usersQuery = query(
+                        collection(db, "User"),
+                        where(documentId(), "in", userIds.slice(0, 10))
+                    );
+                    const usersSnap = await getDocs(usersQuery);
+                    usersSnap.docs.forEach(u => {
+                        usersMap[u.id] = u.data().name || "Unnamed User";
+                    });
+                }
+
+// Attach userName to each registration
+                const regsWithNames = registrations.map(r => ({
+                    ...r,
+                    userName: usersMap[r.userId] || "Unknown User"
+                }));
+
+// Finally merge into state
                 setVerifyData(prev => ({
                     ...prev,
                     ...requestData,
-                    registrations,
+                    registrations: regsWithNames,
                 }));
 
             } catch (error) {
@@ -85,7 +108,15 @@ const EventVerifyCard = ({ event, currentUserRole, onClose , organization}) => {
             // 4. Update Firestore
             const requestRef = doc(db, "EventRequest", verifyData.id);
             await updateDoc(requestRef, fieldsToUpdate);
+
+            // 5. If all approved, also update the related Event document
+            if (allApproved && verifyData.event) {
+                const eventRef = doc(db, "Event", verifyData.event.id || verifyData.event.split("/").pop());
+                await updateDoc(eventRef, { status: "Approved" });
+            }
+
             console.log("Approval submitted!");
+
             alert(allApproved ? "All approvals complete! Event Approved!" : "Verification submitted!");
             onClose();
         } catch (error) {
@@ -110,7 +141,7 @@ const EventVerifyCard = ({ event, currentUserRole, onClose , organization}) => {
     const handleResolveFlag = async () => {
         try {
             const eventRef = doc(db, "Event", event.id);
-            await updateDoc(eventRef, { flagged: false });
+            await updateDoc(eventRef, { status: "Approved" });
             alert("Event has been unflagged.");
             onClose(); // Refresh or close modal
         } catch (error) {
@@ -197,9 +228,9 @@ const EventVerifyCard = ({ event, currentUserRole, onClose , organization}) => {
             <div style={styles.card}>
                 <button onClick={onClose} style={styles.closeBtn}>×</button>
                 <div style={styles.scrollContainer}>
-                    {event.flagged && (
-                        <div style={styles.flagBanner}>
-                            ⚠️ This event has been <strong>flagged for violating community guidelines</strong>.
+                    {event.status ==="Flagged" && (
+                        <div className={"alert-banner"}>
+                            ⚠️ This event has been <strong>flagged for violating community guidelines</strong>.<button onClick={()=>handleResolveFlag()}>Resolve</button>
                         </div>
                     )}
                     <div style={styles.outer}>
@@ -261,7 +292,7 @@ const EventVerifyCard = ({ event, currentUserRole, onClose , organization}) => {
                                 <p><strong>Total Registrations:</strong> {verifyData?.registrations?.length || 0}</p>
                                 {verifyData?.registrations?.map((reg, i) => (
                                     <div key={i} style={{ fontSize: "12px", marginTop: "4px" }}>
-                                        • {reg.userId} – {new Date(reg.timestamp?.toDate?.() || reg.timestamp).toLocaleString()}
+                                        • {reg.userName} – {new Date(reg.timestamp?.toDate?.() || reg.timestamp).toLocaleString()}
                                     </div>
                                 ))}
                             </div>
@@ -387,16 +418,6 @@ const styles = {
         overflow: "hidden",
         borderRadius: '8px',
     },
-    flagBanner: {
-        backgroundColor: "#f8d7da",
-        color: "#721c24",
-        padding: "12px",
-        border: "1px solid #f5c6cb",
-        borderRadius: "6px",
-        marginBottom: "16px",
-        textAlign: "center",
-        fontWeight: "500",
-    },
     resolveBtn: {
         marginTop: "16px",
         padding: "10px 16px",
@@ -477,7 +498,7 @@ const styles = {
     submitBtn: {
         marginTop: "16px",
         padding: "10px 16px",
-        backgroundColor: "#12491B",
+        backgroundColor: "var(--primary-green)",
         color: "#fff",
         width: "150px",
         border: "none",
@@ -516,7 +537,7 @@ const styles = {
     circle: {
         width: "20px",
         height: "20px",
-        backgroundColor: "#12491B", // Dark green or any color you want
+        backgroundColor: "var(--primary-green)",
         borderRadius: "50%",
         marginBottom: "8px",
     },

@@ -29,11 +29,11 @@ function Profile() {
                     const userProfile = docSnap.data();
                     setProfile(userProfile);
 
-                    //  If Organization Liaison, find organization where createdBy == user.uid
+                    //  If Organization Liaison, find organization where liaisonId == user.uid
                     if (userProfile.role === "Organization Liaison") {
                         const orgQuery = query(
                             collection(db, "Organizations"),
-                            where("createdBy", "==", user.uid)
+                            where("liaisonId", "==", user.uid)
                         );
                         const querySnapshot = await getDocs(orgQuery);
                         if (!querySnapshot.empty) {
@@ -86,8 +86,7 @@ function Profile() {
             <div style={{ marginLeft: "250px" }}>
                 <Header pageTitle={"Edit Profile"} />
                 {profile.role === "Organization Liaison" && (
-                    <div style={styles.section}>
-                        <label>
+                    <div style={styles.formContainer}>
                             <strong>Organization Name:</strong>
                             <input
                                 type="text"
@@ -96,10 +95,10 @@ function Profile() {
                                 onChange={handleChange}
                                 style={styles.input}
                             />
-                        </label>
                     </div>
                 )}
                 <div style={styles.formContainer}>
+
                     <input
                         type="text"
                         name="name"

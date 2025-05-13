@@ -91,7 +91,7 @@ function EventModeratorPage() {
             const snapshot = await getDocs(eventsRef);
             const flagged = snapshot.docs
                 .map(doc => ({ id: doc.id, ...doc.data() }))
-                .filter(event => event.flagged === true);
+                .filter(event => event.status === "Flagged");
             setFlaggedEvents(flagged);
         } catch (error) {
             console.error("Error fetching flagged events:", error);
@@ -105,8 +105,26 @@ function EventModeratorPage() {
             const snapshot = await getDocs(eventsRef);
             const unapproved = snapshot.docs
                 .map(doc => ({ id: doc.id, ...doc.data() }))
-                .filter(event => event.verified === false);
-            setApprovalEvents(unapproved);
+                .filter(event => event.status === "Pending");
+
+            // Step 2: Get all EventRequests
+            const requestsRef = collection(firestore, "EventRequest");
+            const requestsSnap = await getDocs(requestsRef);
+
+            // Step 3: Match EventRequests where eventId is in the pending events
+            // and the approval includes Event Moderator with status "Pending"
+            const filteredEvents = unapproved.filter(event => {
+                const correspondingRequest = requestsSnap.docs.find(req =>
+                    req.data().event?.id === event.id &&
+                    req.data().approvals?.some(
+                        approval =>
+                            approval.role === "Event Moderator" &&
+                            approval.status === "Pending Approval"
+                    )
+                );
+                return !!correspondingRequest;
+            });
+            setApprovalEvents(filteredEvents);
         } catch (error) {
             console.error("Error fetching approval events:", error);
         }
@@ -157,11 +175,6 @@ function EventModeratorPage() {
             <SideNavbar />
             <div style={{marginLeft: "250px"}}>
                 <Header pageTitle="Home"/>
-                <SearchBar
-                    value={searchTerm}
-                    onChange={handleSearch}
-                    placeholder="Enter event title..."
-                />
                 <div className={"dashboard-container"}>
                     <div className={"left-column"}>
                         <h3 className={"subHeader"}>Resolve Flagged Content</h3>
@@ -171,6 +184,7 @@ function EventModeratorPage() {
                                     <EventCard
                                         key={event.id}
                                         event={event}
+                                        onDone={()=>fetchFlaggedEvents()}
                                     />
                                 ))}
                             </ul>
@@ -183,6 +197,7 @@ function EventModeratorPage() {
                                     <EventCard
                                         key={event.id}
                                         event={event}
+                                        onDone={()=>fetchApprovalEvents()}
                                     />
                                 ))}
                             </ul>

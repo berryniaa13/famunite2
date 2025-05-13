@@ -3,6 +3,8 @@ import sampleEventImage from "../assets/sampleEventImage.jpg";
 import EventDetailOverlay from "./EventDetailOverlay";
 import EventVerifyCard from "./EventVerifyCard";
 import { auth, firestore } from "../context/firebaseConfig";
+import bookmarkSaved from "../assets/bookmarkSaved.png";
+import bookmarkUnsaved from "../assets/bookmarkUnsaved.png";
 import {addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, serverTimestamp, where} from "firebase/firestore";
 
 const placeholderImage = sampleEventImage;
@@ -30,9 +32,10 @@ const categoryColors = {
     "Alumni Events": "#8e24aa"
 };
 
-const EventCard = ({ event,  layout = "default"  }) => {
+const EventCard = ({ event,  layout = "default" , onDone }) => {
     const [isRegistered, setIsRegistered] = useState(false);
-    const [isLiaisonOfOrg, setIsLiaisonOfOrg] = useState(false);
+    const [isLiaisonOfOrg, setIsLiaisonOfOrg] = useState(false)
+    const [isSaved, setIsSaved] = useState(false);
     const [organization, setOrganization] = useState(null);
     const tagColor = categoryColors[event.category] || "#9e9e9e";
     const [showDetails, setShowDetails] = useState(false);
@@ -75,8 +78,19 @@ const EventCard = ({ event,  layout = "default"  }) => {
                 }
             }
         };
-
+        const checkIfSaved = async () => {
+            const user = auth.currentUser;
+            if (!user) return;
+            const q = query(
+                collection(firestore, "SavedEvents"),
+                where("userId", "==", user.uid),
+                where("eventId", "==", event.id)
+            );
+            const snap = await getDocs(q);
+            setIsSaved(!snap.empty);
+        };
         fetchUserRole();
+        checkIfSaved();
     }, []);
 
     const isPrivileged =
@@ -102,12 +116,12 @@ const EventCard = ({ event,  layout = "default"  }) => {
 
             const eventData = eventSnap.data();
 
-            if (!eventData.verified) {
-                alert("This event is not verified yet.");
+            if (eventData.status === "Pending") {
+                alert("This event is not approved yet.");
                 return;
             }
 
-            if (eventData.suspended) {
+            if (eventData.status === "Suspended") {
                 alert("This event is currently suspended and cannot accept registrations.");
                 return;
             }
@@ -124,7 +138,6 @@ const EventCard = ({ event,  layout = "default"  }) => {
             alert("Failed to register.");
         }
     };
-
     const handleUnregister = async (eventId) => {
         const user = auth.currentUser;
         if (!user) {
@@ -157,6 +170,35 @@ const EventCard = ({ event,  layout = "default"  }) => {
         }
     };
 
+    const handleSave = async (eventId) => {
+        const user = auth.currentUser;
+        if (!user) return alert("Login required");
+        try {
+            await addDoc(collection(firestore, "SavedEvents"), {
+                userId: user.uid,
+                eventId,
+                savedAt: serverTimestamp()
+            });
+            setIsSaved(true);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const handleUnsave = async (eventId) => {
+        const user = auth.currentUser;
+        if (!user) return;
+        const q = query(collection(firestore, "SavedEvents"),
+            where("userId", "==", user.uid),
+            where("eventId", "==", eventId)
+        );
+        const snap = await getDocs(q);
+        const promises = snap.docs.map(d => deleteDoc(d.ref));
+        await Promise.all(promises);
+        setIsSaved(false);
+    };
+
+
     return (
         <>
             <li style={layoutStyles.card} className="event-card">
@@ -171,8 +213,21 @@ const EventCard = ({ event,  layout = "default"  }) => {
                 {event.category}
             </span>
                     )}
+
                 </div>
                 <div style={layoutStyles.body}>
+                    <div style={styles.saveBtnWrapper}>
+                        <button
+                            onClick={() => isSaved ? handleUnsave(event.id) : handleSave(event.id)}
+                            style={styles.saveBtn}
+                        >
+                            <img
+                                src={isSaved ? bookmarkSaved : bookmarkUnsaved}
+                                alt="Save"
+                                style={{ width: "20px", height: "20px" }}
+                            />
+                        </button>
+                    </div>
                     <h3 style={styles.title}>{event.title || "Untitled Event"}</h3>
                     <p style={styles.meta}><strong>Location:</strong> {event.location || "TBD"}</p>
                     <p style={styles.meta}><strong>Date:</strong> {event.date || "TBD"}</p>
@@ -181,22 +236,32 @@ const EventCard = ({ event,  layout = "default"  }) => {
                             View Details
                         </button>
 
-                        {event.verified ? (
-                            event.suspended ? (
-                                <span style={styles.awaiting}>Event Suspended</span>
-                            ) : isRegistered ? (
-                                <span style={styles.awaiting}>Registered</span>
+                        {event.status === "Approved" ? (
+                            isRegistered ? (
+                                <button
+                                    onClick={() => {handleUnregister(event.id)
+                                    onDone()}}
+                                    style={{...styles.registerBtn, backgroundColor:"red"}}
+                                >
+                                    Unregister
+                                </button>
                             ) : (
                                 <button
-                                    onClick={() => handleRegister(event.id)}
+                                    onClick={() => {handleRegister(event.id)
+                                    onDone()}}
                                     style={styles.registerBtn}
                                 >
                                     Register
                                 </button>
                             )
+                        ) : event.status === "Suspended" ? (
+                            <span style={styles.awaiting}>Event Suspended</span>
+                        ) : event.status === "Flagged" ? (
+                            <span style={styles.awaiting}>Event Flagged</span>
                         ) : (
-                            <span style={styles.awaiting}>Awaiting Verification</span>
+                            <span style={styles.awaiting}>Awaiting Approval</span>
                         )}
+
                     </div>
                 </div>
             </li>
@@ -207,14 +272,18 @@ const EventCard = ({ event,  layout = "default"  }) => {
                     <EventVerifyCard event={event}
                                      currentUserRole={userRole}
                                      onClose={() =>
-                                         setShowDetails(false)
+                                     {setShowDetails(false)
+                                         onDone()}
                                      }
                                     organization={organization}/>
                 ) : (
                     <EventDetailOverlay event={event}
-                                        onClose={() => setShowDetails(false)}
+                                        onClose={() => {setShowDetails(false)
+                                        onDone()}
+                    }
                                         handleRegister={()=>handleRegister(event.id)}
-                                        isRegistered={isRegistered} />
+                                        isRegistered={isRegistered}
+                                        organization={organization}/>
                 )
             )}
         </>
@@ -233,6 +302,19 @@ const styles = {
         flexDirection: "column",
         overflow: "hidden",
         position: "relative"
+    },
+    saveBtnWrapper: {
+        display: "flex",
+        justifyContent: "flex-end",
+        marginBottom: "1px",
+    },
+    saveBtn: {
+        background: "rgba(255, 255, 255, 0.9)",
+        border: "none",
+        borderRadius: "50%",
+        padding: "6px",
+        fontSize: "16px",
+        cursor: "pointer",
     },
     imageContainer: {
         position: "relative",
@@ -262,7 +344,8 @@ const styles = {
     title: {
         fontSize: "16px",
         fontWeight: "600",
-        marginBottom: "8px"
+        marginBottom: "8px",
+        marginTop: "0px",
     },
     meta: {
         fontSize: "12px",
@@ -287,7 +370,7 @@ const styles = {
     registerBtn: {
         flex: 1,
         padding: "8px",
-        backgroundColor: "#12491B",
+        backgroundColor: "var(--primary-green)",
         color: "white",
         border: "none",
         fontSize: "12px",
@@ -303,15 +386,14 @@ const styles = {
 
 const rectangularStyles = {
     card: {
-        width: "100%",
-        maxWidth: "700px",
+        maxWidth: "100%",
         display: "flex",
         flexDirection: "row",
         border: "1px solid #ccc",
         borderRadius: "10px",
         overflow: "hidden",
         backgroundColor: "#fff",
-        marginBottom: "16px"
+        marginBottom: "16px",
     },
     imageContainer: {
         width: "240px",

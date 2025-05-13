@@ -5,6 +5,7 @@ import { auth, firestore } from '../context/firebaseConfig';
 function EventReviewForm({ eventId }) {
     const [rating, setRating] = useState(0);
     const [comment, setComment] = useState("");
+    const stars = [1, 2, 3, 4, 5]
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -31,12 +32,18 @@ function EventReviewForm({ eventId }) {
     return (
         <form onSubmit={handleSubmit} style={{ marginTop: "10px" }}>
             <label>Rating:
-                <select value={rating} onChange={(e) => setRating(Number(e.target.value))}>
-                    <option value={0}>Select</option>
-                    {[1, 2, 3, 4, 5].map(star => (
-                        <option key={star} value={star}>{star} Star{star > 1 ? "s" : ""}</option>
+                <div style={{ display: "flex", gap: "4px", fontSize: "24px", cursor: "pointer" }}>
+                    {stars.map(starNumber => (
+                        <span
+                            key={starNumber}
+                            onClick={() => setRating(starNumber)}
+                            // full star if <= rating, otherwise outline
+                            style={{ color: starNumber <= rating ? "#f5b301" : "#ccc" }}
+                        >
+                          {starNumber <= rating ? "★" : "☆"}
+                        </span>
                     ))}
-                </select>
+                </div>
             </label>
             <br />
             <textarea

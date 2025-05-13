@@ -1,6 +1,13 @@
 /**{*/
 /*  border: black solid 1px;*/
 /*}*/
+:root {
+    --primary-green: #12491B;
+    --light-green: #CDE0CA;
+    --primary-orange: #BF6319;
+    --light-orange: #F44336;
+    --nude: #F2EBE9;
+}
 .container {
     text-align: center;
     padding: 15px;
@@ -19,7 +26,7 @@
     border-radius: 10px;
 }
 .horizontalContainer {
-    width: 700px;
+    width: 625px;
     overflow: hidden;
     position: relative;
 }
@@ -52,7 +59,6 @@
     text-align: center;
     background-color: #F2EBE9;
 }
-
 .left-column {
     flex: 1.8;
     padding: 5px;
@@ -63,4 +69,21 @@
     flex: 1.2;
     padding: 1px;
     border-radius: 8px;
+}
+.page-num-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.alert-banner {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    text-align: center;
+    font-weight: 500;
 }

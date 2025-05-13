@@ -2,14 +2,15 @@
 import React, { useState, useEffect } from "react";
 import {
     collection, getDocs, addDoc, serverTimestamp, deleteDoc,
-    doc, getDoc, updateDoc, query, where
+    doc, getDoc, updateDoc, query, where, orderBy
 } from "firebase/firestore";
 import { auth, firestore } from "../context/firebaseConfig";
 import SideNavbar from "../components/SideNavbar";
 import Header from "../components/Header";
 import SearchBar from "../components/SearchBar";
+import EventCard from "../components/EventCard";
 
-const EVENTS_PER_PAGE = 5;
+const EVENTS_PER_PAGE = 10;
 
 const Events = () => {
     const [searchTerm, setSearchTerm] = useState("");
@@ -24,24 +25,49 @@ const Events = () => {
     const [eventFeedbacks, setEventFeedbacks] = useState([]);
     const [ratingFilter, setRatingFilter] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
+    const [selectedCategory, setSelectedCategory] = useState("");
+
 
     useEffect(() => {
         fetchEvents();
-        fetchSavedEvents();
         const storedRole = localStorage.getItem("userRole");
         setRole(storedRole);
     }, []);
 
+    useEffect(() => {
+        const filtered = events.filter(event => {
+            const matchesSearch = event.title?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesOrg = !selectedOrganization || event.organizationId === selectedOrganization;
+            const matchesCat = !selectedCategory || event.category === selectedCategory;
+            return matchesSearch && matchesOrg && matchesCat;
+        });
+
+        setFilteredEvents(filtered);
+        setCurrentPage(1); // Reset pagination on filter change
+    }, [searchTerm, selectedOrganization, selectedCategory, events]);
+
+
     const fetchEvents = async () => {
         try {
             const ref = collection(firestore, "Event");
-            const snap = await getDocs(ref);
+            const q = query(ref, orderBy("date", "asc"));
+            const snap = await getDocs(q);
             const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-            data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            // data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             setEvents(data);
             setFilteredEvents(data);
-            const orgs = [...new Set(data.map((e) => e.organizationName).filter(Boolean))];
-            setOrganizationOptions(orgs);
+            const orgs = [...new Set(data.map((e) => e.organizationId).filter(Boolean))];
+            const orgSnaps = await Promise.all(
+                orgs.map((id) => getDoc(doc(firestore, "Organizations", id)))
+            );
+            const orgOptions = orgSnaps
+                .filter(snap => snap.exists())        // drop any non-existent docs
+                .map(snap => ({
+                    id:   snap.id,                      // snapshot.id is the doc ID
+                    name: snap.data().name              // grab the `name` field
+                }));
+
+            setOrganizationOptions(orgOptions);
         } catch (err) {
             console.error("Error loading events", err);
         }
@@ -65,27 +91,6 @@ const Events = () => {
         }
     };
 
-    const handleSearch = (e) => {
-        const term = e.target.value.toLowerCase();
-        setSearchTerm(term);
-        const filtered = events.filter(event =>
-            event.title?.toLowerCase().includes(term) &&
-            (!selectedOrganization || event.organizationName === selectedOrganization)
-        );
-        setFilteredEvents(filtered);
-        setCurrentPage(1);
-    };
-
-    const handleOrgChange = (e) => {
-        const org = e.target.value;
-        setSelectedOrganization(org);
-        const filtered = events.filter(event =>
-            (!org || event.organizationName === org) &&
-            event.title?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        setFilteredEvents(filtered);
-        setCurrentPage(1);
-    };
 
     const paginatedEvents = filteredEvents.slice(
         (currentPage - 1) * EVENTS_PER_PAGE,
@@ -107,32 +112,6 @@ const Events = () => {
         } catch (e) {
             console.error(e);
         }
-    };
-
-    const handleSave = async (eventId) => {
-        const user = auth.currentUser;
-        if (!user) return alert("Login required");
-        try {
-            await addDoc(collection(firestore, "SavedEvents"), {
-                userId: user.uid,
-                eventId,
-                savedAt: serverTimestamp()
-            });
-            alert("Event saved");
-            fetchSavedEvents();
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
-    const handleUnsave = async (eventId) => {
-        const user = auth.currentUser;
-        if (!user) return;
-        const q = query(collection(firestore, "SavedEvents"), where("userId", "==", user.uid), where("eventId", "==", eventId));
-        const snap = await getDocs(q);
-        const promises = snap.docs.map(d => deleteDoc(d.ref));
-        await Promise.all(promises);
-        fetchSavedEvents();
     };
 
     const handleViewDetails = async (event) => {
@@ -162,27 +141,24 @@ const Events = () => {
             <SideNavbar />
             <div style={{ marginLeft: "250px" }}>
                 <Header pageTitle="Events" />
-                <SearchBar value={searchTerm} onChange={handleSearch} placeholder="Enter event title..." />
-                <select value={selectedOrganization} onChange={handleOrgChange} style={{ margin: 10, padding: 8 }}>
-                    <option value="">Filter by Organization</option>
-                    {organizationOptions.map((org, i) => (
-                        <option key={i} value={org}>{org}</option>
-                    ))}
-                </select>
+                <SearchBar
+                    searchTerm={searchTerm}
+                    onSearchTermChange={setSearchTerm}
+                    selectedOrganization={selectedOrganization}
+                    onOrganizationChange={setSelectedOrganization}
+                    selectedCategory={selectedCategory}
+                    onCategoryChange={setSelectedCategory}
+                    organizationOptions={organizationOptions}
+                    categoryOptions={[...new Set(events.map(e => e.category).filter(Boolean))]}
+                />
+
 
                 {role !== "Admin" && savedEvents.length > 0 && (
                     <>
                         <h2>Saved Events</h2>
                         <ul style={{ listStyle: "none", padding: 0 }}>
                             {savedEvents.map((event) => (
-                                <li key={event.id} style={styles.card}>
-                                    <h3>{event.title}</h3>
-                                    <p>{event.date}</p>
-                                    <div style={{ display: "flex", gap: 10 }}>
-                                        <button onClick={() => handleViewDetails(event)} style={styles.viewButton}>View</button>
-                                        <button onClick={() => handleUnsave(event.id)} style={styles.suspendButton}>Unsave</button>
-                                    </div>
-                                </li>
+                                <EventCard event={event} key={event.id}  layout={"rectangular"} onDone={()=>fetchEvents()}/>
                             ))}
                         </ul>
                     </>
@@ -191,36 +167,19 @@ const Events = () => {
                 <h2>All Events</h2>
                 <ul style={{ listStyle: "none", padding: 0 }}>
                     {paginatedEvents.map((event) => (
-                        <li key={event.id} style={styles.card}>
-                            <h3>{event.title}</h3>
-                            <p>{event.date}</p>
-                            <div style={{ display: "flex", gap: 10 }}>
-                                <button onClick={() => handleViewDetails(event)} style={styles.viewButton}>Details</button>
-                                {role === "Admin" ? (
-                                    <button onClick={() => updateEventStatus(event.id, event.status === "Suspended" ? "Active" : "Suspended")}
-                                            style={event.status === "Suspended" ? styles.unsuspendButton : styles.suspendButton}>
-                                        {event.status === "Suspended" ? "Unsuspend" : "Suspend"}
-                                    </button>
-                                ) : event.verified ? (
-                                    <>
-                                        <button onClick={() => handleRegister(event.id)} style={styles.viewButton}>Register</button>
-                                        <button onClick={() => handleSave(event.id)} style={styles.unsuspendButton}>Save</button>
-                                    </>
-                                ) : <span style={{ color: "gray" }}>Awaiting Verification</span>}
-                            </div>
-                        </li>
+                        <EventCard event={event} key={event.id} layout={"rectangular"} onDone={()=>fetchEvents()}/>
                     ))}
                 </ul>
 
                 {totalPages > 1 && (
-                    <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
+                    <div className={"page-num-container"}>
                         {Array.from({ length: totalPages }).map((_, idx) => (
                             <button
                                 key={idx + 1}
                                 onClick={() => setCurrentPage(idx + 1)}
                                 style={{
                                     ...styles.viewButton,
-                                    backgroundColor: currentPage === idx + 1 ? "#12491B" : "#CDE0CA",
+                                    backgroundColor: currentPage === idx + 1 ? "var(--primary-green)" : "#CDE0CA",
                                     color: currentPage === idx + 1 ? "white" : "black"
                                 }}
                             >
@@ -279,7 +238,7 @@ const styles = {
         boxShadow: "0 2px 5px rgba(0,0,0,0.1)"
     },
     viewButton: {
-        backgroundColor: "#12491B",
+        backgroundColor: "var(--primary-green)",
         color: "white",
         border: "none",
         borderRadius: "5px",
@@ -294,6 +253,7 @@ const styles = {
         padding: "8px 12px",
         cursor: "pointer"
     },
+
     unsuspendButton: {
         backgroundColor: "#28a745",
         color: "white",

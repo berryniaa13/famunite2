@@ -7,9 +7,9 @@ import {
     updateDoc,
     addDoc,           // ← new
     serverTimestamp,  // ← new
-    deleteDoc         // ← new
+    deleteDoc, orderBy, query, where         // ← new
 } from 'firebase/firestore';
-import { firestore } from '../../context/firebaseConfig';
+import {auth, firestore} from '../../context/firebaseConfig';
 import SideNavbar from "../../components/SideNavbar";
 import famUniteLogo from "../../assets/FAMUniteLogoNude.png";
 import Header from "../../components/Header";
@@ -19,6 +19,7 @@ import AnnouncementsList from "../../components/AnnouncementsList";
 
 function DashboardPage() {
     const navigate = useNavigate();
+    const [currentUser, setCurrentUser] = useState(null);
     const [role, setRole] = useState(null);
     const [users, setUsers] = useState([]);
     const [announcements, setAnnouncements] = useState([]);
@@ -70,11 +71,29 @@ function DashboardPage() {
     const fetchApprovalEvents = async () => {
         try {
             const eventsRef = collection(firestore, "Event");
-            const snapshot = await getDocs(eventsRef);
+            const q = query(eventsRef, orderBy("date", "asc"));
+            const snapshot = await getDocs(q);
             const unapproved = snapshot.docs
                 .map(doc => ({ id: doc.id, ...doc.data() }))
-                .filter(event => event.verified === false);
-            setApprovalEvents(unapproved);
+                .filter(event => event.status === "Pending");
+            // Step 2: Get all EventRequests
+            const requestsRef = collection(firestore, "EventRequest");
+            const requestsSnap = await getDocs(requestsRef);
+
+            // Step 3: Match EventRequests where eventId is in the pending events
+            // and the approval includes Event Moderator with status "Pending"
+            const filteredEvents = unapproved.filter(event => {
+                const correspondingRequest = requestsSnap.docs.find(req =>
+                    req.data().event?.id === event.id &&
+                    req.data().approvals?.some(
+                        approval =>
+                            approval.role === "Admin" &&
+                            approval.status === "Pending Approval"
+                    )
+                );
+                return !!correspondingRequest;
+            });
+            setApprovalEvents(filteredEvents);
         } catch (error) {
             console.error("Error fetching approval events:", error);
         }
@@ -99,9 +118,12 @@ function DashboardPage() {
     const handleCreateAnnouncement = async () => {
         if (!newAnnouncement.trim()) return;
         try {
+            const user = auth.currentUser;
             await addDoc(collection(firestore, 'Announcements'), {
                 text: newAnnouncement.trim(),
-                createdAt: serverTimestamp()
+                postedAt: serverTimestamp(),
+                postedBy: user.uid
+
             });
             setNewAnnouncement('');
             fetchAnnouncements();
@@ -147,6 +169,7 @@ function DashboardPage() {
                                     <EventCard
                                         key={event.id}
                                         event={event}
+                                        onDone={fetchApprovalEvents}
                                     />
                                 ))}
 
@@ -237,7 +260,7 @@ function DashboardPage() {
 
                             {/* ——— New Announcement Form (Admins only) ——— */}
                             {role === 'Admin' && (
-                                <div style={styles.announcementContainer}>
+                                <div>
                                     <h3>Post New Announcement</h3>
                                     <textarea
                                         rows={3}
@@ -254,6 +277,7 @@ function DashboardPage() {
                                     </button>
                                 </div>
                             )}
+
                         <h3 className={"subHeader"}>Messages</h3>
                     </div>
                 </div>
@@ -290,7 +314,7 @@ const styles = {
         borderRadius: 5, backgroundColor: "#f9f9f9", display: "flex", alignItems: "center"
     },
     button: {
-        padding: "5px 10px", backgroundColor: "#12491B",
+        padding: "5px 10px", backgroundColor: "var(--primary-green)",
         color: "white", border: "none", cursor: "pointer", borderRadius: 5
     },
     detailsContainer: {

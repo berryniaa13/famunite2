@@ -1,36 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AnnouncementsList from "../../components/AnnouncementsList";
-import { signOut } from "firebase/auth";
 import {
     deleteDoc,
     where,
     query,
     collection,
-    getDocs,
     addDoc,
     serverTimestamp,
+    orderBy,
     doc,
     getDoc,
 } from "firebase/firestore";
+import {getDocs } from "firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 import { auth, firestore } from "../../context/firebaseConfig";
 import SideNavbar from "../../components/SideNavbar";
-import famUniteLogo from "../../assets/FAMUniteLogoNude.png";
 import EventCard from "../../components/EventCard";
-import EventCardRectangular from "../../components/EventCardRectangular";
 import Header from "../../components/Header";
+import {all} from "axios";
 
-
-import EventReviewForm from "../../components/EventReviewForm";
-import EventReviewsList from "../../components/EventReviewsList";
-import AnnouncementCard from "../../components/AnnouncementCard";
 
 function StudentDashboard() {
     const [filteredEvents, setFilteredEvents] = useState([]);
     const [registeredEvents, setRegisteredEvents] = useState([]);
-    const navigate = useNavigate();
-    const [announcements, setAnnouncements] = useState([]);
-
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -49,7 +42,14 @@ function StudentDashboard() {
                 : [];
 
             const eventsRef = collection(firestore, "Event");
-            const eventsSnapshot = await getDocs(eventsRef);
+            const todayStr = new Date().toISOString().slice(0,10); // "2025-05-15"
+            const q = query(
+                eventsRef,
+                where("date", ">=", todayStr),
+                where("status", "==", "Approved"),
+                orderBy("date", "asc")
+            );
+            const eventsSnapshot = await getDocs(q);
             const eventsList = eventsSnapshot.docs.map((doc) => ({
                 id: doc.id,
                 ...doc.data(),
@@ -59,8 +59,11 @@ function StudentDashboard() {
                 (event) =>
                     event.category && likedCategories.includes(event.category)
             );
+            const today = new Date();
+            const upcoming = recommendedEvents.filter(e => new Date(e.date) >= today);
 
-            setFilteredEvents(recommendedEvents);
+            setFilteredEvents(upcoming);
+            console.log(filteredEvents);
 
             const registrationsRef = collection(firestore, "Registrations");
             const registrationsSnapshot = await getDocs(registrationsRef);
@@ -77,9 +80,6 @@ function StudentDashboard() {
             console.error("Error fetching events:", error);
         }
     };
-
-
-
 
     // Helper function to check if the user is registered for an event
     const isUserRegistered = (eventId) => {
@@ -100,6 +100,7 @@ function StudentDashboard() {
                                     <li key={event.id} style={{listStyle: "none", width: "100%"}}>
                                         <EventCard
                                             event={event}
+                                            onDone={()=>fetchEvents()}
                                         />
                                     </li>
                                 ))}
@@ -113,6 +114,7 @@ function StudentDashboard() {
                                     <EventCard
                                         key={event.id}
                                         event={event}
+                                        onDone={()=>fetchEvents()}
                                     />
                                 ))}
                             </ul>
@@ -128,10 +130,7 @@ function StudentDashboard() {
         </div>
     );
 }
-
 const styles = {
-
-
 
 };
 

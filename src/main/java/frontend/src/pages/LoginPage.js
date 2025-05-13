@@ -108,7 +108,7 @@ function LoginPage() {
         button: {
             width: '100%',
             height: '40px',
-            backgroundColor: '#12491B',
+            backgroundColor: 'var(--primary-green)',
             color: 'white',
             border: 'none',
             borderRadius: '5px',
@@ -118,7 +118,7 @@ function LoginPage() {
         signUpButton: {
             width: '100%',
             height: '40px',
-            backgroundColor: '#12491B',
+            backgroundColor: 'var(--primary-green)',
             color: 'white',
             border: 'none',
             borderRadius: '5px',
@@ -137,10 +137,10 @@ function LoginPage() {
         header: {
             fontSize: "24px",
             fontWeight: "bold",
-            color: "#12491B",
+            color: "var(--primary-green)",
         },
         pageWrapper: {
-            backgroundColor: '#F2EBE9',
+            backgroundColor: 'var(--nude)',
             minHeight: '100vh',
             display: 'flex',
             justifyContent: 'center',

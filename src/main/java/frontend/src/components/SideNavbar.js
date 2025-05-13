@@ -70,7 +70,7 @@ const styles = {
     sidebar: {
         width: "250px",
         height: "100vh",
-        backgroundColor: "#12491B",
+        backgroundColor: "var(--primary-green)",
         color: "white",
         position: "fixed",
         top: "0",
