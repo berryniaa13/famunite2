@@ -22,7 +22,7 @@ See Specifaction Document for more information
 ![FAMUnite Presentation Version](documentation/FAMUnitePresentationVersion.gif)
 
 ### Updated Version 05/15
-![FAMUnite Updated Version](documentation/FAMUniteUpdateVersion.gif)
+![FAMUnite Updated Version](documentation/FAMUniteUpdate0515.gif)
 
 ## 🧰 Tech Stack
 - **IDE & Frameworks**: IntelliJ, Vite, React
