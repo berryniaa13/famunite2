@@ -38,12 +38,13 @@ FAMUnite is a two-semester Software Design & Development capstone built at Flori
 
 ### Next Steps
 - Clean up files and remove redundant/unused code
-- Move the backend code to separate java files
+- Full mobile responsiveness and WCAG compliance
+- Move the backend code to separate Java files
 - Upgrade Event and Event Feedback Moderation Experience
 - Upgrade Admin Dashboard (user management)
 - Upgrade Event Analytics 
-- Upgrade Event Page (saved event page, all event page for organization liaison)
-- Upgrade Profile (allow students to change interest
+- Upgrade Event Page (saved event page, all event page for organization liaison, upgrade filter UI)
+- Upgrade Profile (allow students to change interests
 - Migrate and Fix Message components onto the message page
 
 ## 🧰 Tech Stack
