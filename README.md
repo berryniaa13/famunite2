@@ -13,16 +13,12 @@ FAMUnite is a two-semester Software Design & Development capstone built at Flori
 ### System Design & Project Management (Aug ’24 – Dec ’24)
 - **Team Leadership:** Served as project manager for Phase I—coordinated a 5-person team, managed sprints, delegated tasks, and tracked progress.  
 - **UX/UI Prototyping:** Created low- and high-fidelity wireframes in Figma, conducted competitor analyses, and defined core user journeys to inform our design roadmap.  
-**FAMUnite** aims to address this issue by providing a centralized, user-friendly application that keeps students informed. The app will enable students to:
-- View upcoming events
-- Register for events
-- Save events for later
-- Manage event request system
+- **Data Modeling:** Developed Firestore collection relationship diagrams and an Entity–Relationship Diagram (ERD) to organize data schemas
 
 ## 🛠️ Features
 - 📅 **Event Calendar**: View all upcoming campus events in one place.
 - 🔔 **Announcements**: Receive announcements for registered or saved events.
-- 📌 **Event Registration**: Easily register for events with a single click.
+- 📌 **Event Management & Registration**: Easily manage & register for events with a single click.
 - 💾 **Save Events**: Bookmark events to view later.
 
 
