@@ -24,14 +24,18 @@ At Florida A&M University (FAMU), students often struggle to stay updated with c
 ![FAMUnite Presentation Version](documentation/FAMUnitePresentationVersion.gif)
 
 ### Updated Version 05/15
-- **Refactored & Consolidated**: Moved event logic into unified components (EventCard) and merged similar cards to reduce redundancy and improve maintainability.
+- **Refactored & Consolidated**: Moved event logic into unified components (EventCard) and merged similar cards to reduce redundancy and improve maintainability, created global stylesheets
 - **Enhanced UI/UX & Styling**: Introduced neumorphic design across the login/signup flow, polished event review pages, and fixed layout overlaps for a smoother experience.
 - **Expanded Data Integration**: Cleaned up Firebase data for more reliable event sourcing.
 - **Advanced Filtering & Analytics**: Implemented date sorting, category/organization filters, and enhanced registration analytics for deeper insights into user engagement.
 ![FAMUnite Updated Version](documentation/FAMUniteUpdate0515.gif)
 
 ### Next Steps
-
+- Upgrade Event and Event Feedback User Experience
+- Upgrade Admin Dashboard (user management)
+- Upgrade Event Analytics
+- Upgrade Profile
+- Migrate and Fix Message components onto the message page
 
 ## 🧰 Tech Stack
 - **IDE & Frameworks**: IntelliJ, Vite, React
