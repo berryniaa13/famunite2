@@ -1,8 +1,18 @@
 # **FAMUnite**
 
 ## 🚀 About the Project
-At Florida A&M University (FAMU), students often struggle to stay updated with campus clubs, organizations, and university partner events. Information is scattered across social media, iStrike, and email, making tracking and staying current challenging.
 
+FAMUnite is a two-semester Software Design & Development capstone built at Florida A&M University. It centralizes campus events, club announcements, and partner programs into one intuitive, mobile-friendly platform.
+
+### Key Contributions (Jan ’25 – May ’25)
+- **Frontend Architecture:** Led React.js development with a focus on clean, reusable components, mobile responsiveness, and WCAG-aligned accessibility.  
+- **Role-Based Dashboards:** Built dynamic views that adapt to user roles (student, organizer, moderator), using conditional rendering for personalized content.  
+- **Search & Filter:** Engineered robust search and multi-criteria filtering (by date, category, organization) to surface relevant events quickly and streamline user workflows.  
+- **Real-Time Data Sync:** Integrated Firebase Firestore for secure user authentication and live updates of events, registrations, and announcements.  
+
+### System Design & Project Management (Aug ’24 – Dec ’24)
+- **Team Leadership:** Served as project manager for Phase I—coordinated a 5-person team, managed sprints, delegated tasks, and tracked progress.  
+- **UX/UI Prototyping:** Created low- and high-fidelity wireframes in Figma, conducted competitor analyses, and defined core user journeys to inform our design roadmap.  
 **FAMUnite** aims to address this issue by providing a centralized, user-friendly application that keeps students informed. The app will enable students to:
 - View upcoming events
 - Register for events
