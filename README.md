@@ -37,7 +37,7 @@ FAMUnite is a two-semester Software Design & Development capstone built at Flori
 ![FAMUnite Updated Version](documentation/FAMUniteUpdate0515.gif)
 
 ### Next Steps
-- Clean up files and remove redundant/unused code
+- Clean up CSS styles and remove redundant/unused code in project
 - Full mobile responsiveness and WCAG compliance
 - Move the backend code to separate Java files
 - Upgrade Event and Event Feedback Moderation Experience
