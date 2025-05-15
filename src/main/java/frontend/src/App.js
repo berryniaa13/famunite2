@@ -8,7 +8,6 @@ import OrganizationLiasonPage from "./pages/home/OrganizationLiaisonPage";
 import Events from "./pages/Events";
 import Profile from "./pages/Profile";
 import Messages from "./pages/Messages";
-import SignUpPage from "./pages/SignUpPage";
 import SelectLiaisonToChat from "./pages/SelectLiaisonToChat";
 import SelectStudentToChat from "./pages/SelectStudentToChat";
 import './styles/global.css';
@@ -18,7 +17,6 @@ function App() {
         <Router>
             <Routes>
                 <Route path="/" element={<LoginPage />} />
-                <Route path="/signup" element={<SignUpPage />} />
                 <Route path="/admin-dashboard" element={<DashboardPage />} />
                 <Route path="/student-dashboard" element={<StudentDashboard />} />
                 <Route path="/event-moderator-dashboard" element={<EventModeratorPage />} />

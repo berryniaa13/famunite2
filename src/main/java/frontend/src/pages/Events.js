@@ -164,7 +164,7 @@ const Events = () => {
                     </>
                 )}
 
-                <h2>All Events</h2>
+                <h2 className={"subHeader"}>All Events</h2>
                 <ul style={{ listStyle: "none", padding: 0 }}>
                     {paginatedEvents.map((event) => (
                         <EventCard event={event} key={event.id} layout={"rectangular"} onDone={()=>fetchEvents()}/>

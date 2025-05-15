@@ -3,7 +3,7 @@ import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs
 import { getAuth } from "firebase/auth";
 import SideNavbar from "../components/SideNavbar";
 import Header from "../components/Header";
-import famUniteLogo from "../assets/FAMUniteLogoNude.png";
+import "../styles/form.scss";
 
 const db = getFirestore();
 const auth = getAuth();
@@ -81,7 +81,7 @@ function Profile() {
     if (loading) return <p>Loading profile...</p>;
 
     return (
-        <div style={styles.container}>
+        <div className={"container"}>
             <SideNavbar />
             <div style={{ marginLeft: "250px" }}>
                 <Header pageTitle={"Edit Profile"} />
@@ -134,7 +134,7 @@ function Profile() {
                         placeholder="Phone Number"
                         style={styles.input}
                     />
-                    <button onClick={handleSave} style={styles.button}>Save</button>
+                    <button onClick={handleSave} className={"buttonGreen"}>Save</button>
                 </div>
             </div>
         </div>

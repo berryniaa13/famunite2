@@ -53,14 +53,18 @@ const AnnouncementCard = ({
 const styles = {
     card: {
         backgroundColor: "#fff",
-        border: "1px solid #ccc",
         borderRadius: "8px",
         padding: "12px",
         marginBottom: "16px",
         maxWidth: "100%",
         width: "100%",
         boxSizing: "border-box",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+        background: "rgba(255, 255, 255, 0.8)",
+        border: "1px solid rgba(255, 255, 255, 0.2)",
+        boxShadow: "0 4px 30px rgba(0, 0, 0, 0.2)",
+        color: "black",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
     },
     textarea: {
         maxWidth: "100%",

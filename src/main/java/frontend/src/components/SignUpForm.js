@@ -5,8 +5,9 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { setDoc, doc, serverTimestamp, collection } from 'firebase/firestore';
 import { auth, firestore } from '../context/firebaseConfig';
 import famUniteLogo from "../assets/FAMUniteLogoNude.png";
+import "../styles/login.scss"
 
-function SignUpPage() {
+function SignUpForm() {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -76,13 +77,11 @@ function SignUpPage() {
             margin: '0 auto',
             width: '500px',
             textAlign: 'center',
-            padding: '20px',
-            backgroundColor: '#F2EBE9',
-            marginTop: '100px',
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             gap: "10px",
+            overflowY: "auto",
         },
         input: {
             marginBottom: '15px',
@@ -115,13 +114,6 @@ function SignUpPage() {
             fontWeight: "bold",
             color: "var(--primary-green)",
         },
-        pageWrapper: {
-            backgroundColor: 'var(--nude)',
-            minHeight: '100vh',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-        },
         label: {
             fontWeight: 'bold',
             marginBottom: '5px',
@@ -132,14 +124,14 @@ function SignUpPage() {
     };
 
     return (
-        <div style={styles.pageWrapper}>
-            <div style={styles.container}>
+        <div className={"login"}>
+            <div className={"form"} >
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <img src={famUniteLogo} alt="FAMUnite Logo" style={styles.logo} />
                     <h1 style={styles.header}>Sign Up</h1>
                 </div>
                 {error && <p style={styles.error}>{error}</p>}
-                <form onSubmit={handleSignUp} style={{ margin: '10px', width: '100%' }}>
+                <form onSubmit={handleSignUp} style={{ margin: '10px' }}>
                     <input
                         type="email"
                         placeholder="Email"
@@ -200,7 +192,7 @@ function SignUpPage() {
                         />
                     )}
                     {role === "Student" && (
-                        <div style={{ width: '100%' }}>
+                        <div >
                             <label style={styles.label}>Select Your Interests</label>
                             <div style={{
                                 display: 'grid',
@@ -242,4 +234,4 @@ function SignUpPage() {
     );
 }
 
-export default SignUpPage;
+export default SignUpForm;

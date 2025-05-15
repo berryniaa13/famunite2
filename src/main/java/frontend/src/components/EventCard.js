@@ -229,6 +229,7 @@ const EventCard = ({ event,  layout = "default" , onDone }) => {
                         </button>
                     </div>
                     <h3 style={styles.title}>{event.title || "Untitled Event"}</h3>
+                    <p style={styles.meta}><strong> {organization?.name || "TBD"}</strong></p>
                     <p style={styles.meta}><strong>Location:</strong> {event.location || "TBD"}</p>
                     <p style={styles.meta}><strong>Date:</strong> {event.date || "TBD"}</p>
                     <div style={layoutStyles.actions}>
@@ -241,7 +242,7 @@ const EventCard = ({ event,  layout = "default" , onDone }) => {
                                 <button
                                     onClick={() => {handleUnregister(event.id)
                                     onDone()}}
-                                    style={{...styles.registerBtn, backgroundColor:"red"}}
+                                    className={"buttonOrange"}
                                 >
                                     Unregister
                                 </button>
@@ -249,7 +250,7 @@ const EventCard = ({ event,  layout = "default" , onDone }) => {
                                 <button
                                     onClick={() => {handleRegister(event.id)
                                     onDone()}}
-                                    style={styles.registerBtn}
+                                    className={"buttonGreen"}
                                 >
                                     Register
                                 </button>
@@ -294,14 +295,18 @@ const styles = {
     card: {
         minWidth: "280px",
         maxWidth: "300px",
-        padding: "0",
         borderRadius: "12px",
-        border: "1px solid #ccc",
         backgroundColor: "#fff",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        position: "relative"
+        position: "relative",
+        background: "rgba(255, 255, 255, 0.8)",
+        border: "1px solid rgba(255, 255, 255, 0.2)",
+        boxShadow: "0 4px 30px rgba(0, 0, 0, 0.2)",
+        color: "white",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
     },
     saveBtnWrapper: {
         display: "flex",
@@ -338,19 +343,20 @@ const styles = {
         whiteSpace: "nowrap"
     },
     body: {
-        padding: "12px",
+        padding: "4px 12px 12px 12px",
         flex: 1
     },
     title: {
         fontSize: "16px",
-        fontWeight: "600",
-        marginBottom: "8px",
+        marginBottom: "4px",
         marginTop: "0px",
+        color:"var(--primary-green)",
+        fontWeight:"bold"
     },
     meta: {
         fontSize: "12px",
         color: "#333",
-        marginBottom: "4px"
+        margin: "4px",
     },
     actions: {
         display: "flex",
@@ -389,15 +395,18 @@ const rectangularStyles = {
         maxWidth: "100%",
         display: "flex",
         flexDirection: "row",
-        border: "1px solid #ccc",
+        border: "1px solid rgba(255, 255, 255, 0.2)",
         borderRadius: "10px",
         overflow: "hidden",
-        backgroundColor: "#fff",
+        background: "rgba(255, 255, 255, 0.8)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
+        boxShadow: "0 4px 30px rgba(0, 0, 0, 0.2)",
         marginBottom: "16px",
     },
     imageContainer: {
         width: "240px",
-        height: "200px",
+        height: "auto",
         overflow: "hidden",
         flexShrink: 0,
         position: "relative"

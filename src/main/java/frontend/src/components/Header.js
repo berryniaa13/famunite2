@@ -1,5 +1,5 @@
 import React from "react";
-import famUniteLogo from "../assets/FAMUniteLogoNude.png";
+import famUniteLogo from "../assets/FAMUniteLogoLightGreen.png";
 
 const Header = ({ pageTitle }) => {
     return (
@@ -14,7 +14,7 @@ const styles = {
     headerContainer: {
         position: "relative",
         height: "75px",
-        marginBottom: "20px",
+        marginBottom: "10px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -23,6 +23,7 @@ const styles = {
     header: {
         fontSize: "24px",
         fontWeight: "bold",
+        color: "black",
         margin: 0,
     },
     image: {
