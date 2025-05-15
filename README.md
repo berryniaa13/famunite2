@@ -14,20 +14,24 @@ At Florida A&M University (FAMU), students often struggle to stay updated with c
 - 🔔 **Announcements**: Receive announcements for registered or saved events.
 - 📌 **Event Registration**: Easily register for events with a single click.
 - 💾 **Save Events**: Bookmark events to view later.
-See Specifaction Document for more information
+
+
 
 ## 📷 Screenshots
 
 ### Presentation Version 05/01
+- Completed over 80% of design specification features (See documentation/FAMUnite Specification.pdf for full list)
 ![FAMUnite Presentation Version](documentation/FAMUnitePresentationVersion.gif)
 
 ### Updated Version 05/15
 - **Refactored & Consolidated**: Moved event logic into unified components (EventCard) and merged similar cards to reduce redundancy and improve maintainability.
 - **Enhanced UI/UX & Styling**: Introduced neumorphic design across the login/signup flow, polished event review pages, and fixed layout overlaps for a smoother experience.
-- **Expanded Data Integration**: Added Instagram feed aggregation, improved announcement listings, and cleaned up Firebase data for more reliable event sourcing.
+- **Expanded Data Integration**: Cleaned up Firebase data for more reliable event sourcing.
 - **Advanced Filtering & Analytics**: Implemented date sorting, category/organization filters, and enhanced registration analytics for deeper insights into user engagement.
-
 ![FAMUnite Updated Version](documentation/FAMUniteUpdate0515.gif)
+
+### Next Steps
+
 
 ## 🧰 Tech Stack
 - **IDE & Frameworks**: IntelliJ, Vite, React
