@@ -18,6 +18,7 @@ See Specifaction Document for more information
 
 ## 📷 Screenshots
 *Coming Soon*
+(documentation/FAMUnitePresentationVersion.gif)
 
 ## 🧰 Tech Stack
 - **IDE & Frameworks**: IntelliJ, Vite, React
