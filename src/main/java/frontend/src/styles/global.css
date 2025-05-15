@@ -8,6 +8,9 @@
     --primary-orange: #BF6319;
     --light-orange: #F44336;
     --nude: #F2EBE9;
+    --shadow-dark: #C4D0C3;
+
+    --shadow-light: #F7FBF7;
 }
 .container {
     text-align: center;
