@@ -46,6 +46,9 @@ FAMUnite is a two-semester Software Design & Development capstone built at Flori
 - Upgrade Event Page (saved event page, all event page for organization liaison, upgrade filter UI)
 - Upgrade Profile (allow students to change interests
 - Migrate and Fix Message components onto the message page
+- UX Modifications (sticky filter toolbar, chips & tags for filters, multi select dropdowns, page & data loading states (skeleton screens, animated loaders, empty state illustrations or call to actions)
+- Non-blocking toast (ex "Registered) instead of alert()
+
 
 ## 🧰 Tech Stack
 - **IDE & Frameworks**: IntelliJ, Vite, React
