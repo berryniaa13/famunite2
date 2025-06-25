@@ -9,7 +9,8 @@ FAMUnite is a two-semester Software Design & Development capstone built at Flori
 - **Role-Based Dashboards:** Built dynamic views that adapt to user roles (student, organizer, moderator), using conditional rendering for personalized content.  
 - **Search & Filter:** Engineered robust search and multi-criteria filtering (by date, category, organization) to surface relevant events quickly and streamline user workflows.  
 - **Real-Time Data Sync:** Integrated Firebase Firestore for secure user authentication and live updates of events, registrations, and announcements.
-https://drive.google.com/drive/folders/1Hma0Z6MPa9T5QUwBOWmkVzvw4wwlvp0W?usp=sharing 
+https://drive.google.com/drive/folders/1Hma0Z6MPa9T5QUwBOWmkVzvw4wwlvp0W?usp=sharing
+![FAMUnite Semester One Presentation](documentation/FAMUnitePresentation1.gif)
 
 ### System Design & Project Management (Aug ’24 – Dec ’24)
 - **Team Leadership:** Served as project manager for Phase I—coordinated a 5-person team, managed sprints, delegated tasks, and tracked progress.  
