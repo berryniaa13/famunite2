@@ -11,7 +11,7 @@ FAMUnite is a two-semester Software Design & Development capstone built at Flori
 
 Google Drive: https://drive.google.com/drive/folders/1Hma0Z6MPa9T5QUwBOWmkVzvw4wwlvp0W?usp=sharing
 
-Figma: https://www.figma.com/design/3U95ByNFUXgcm75Y1Jx7XY/FAMUnite-Wireframe?node-id=0-1&t=LOL2pPk7zrcWbxhf-1 
+Figma: https://www.figma.com/design/yp836TbaQK6JlmCdW6TsJB/FAMUnite?node-id=0-1&t=qRCPUhtGWjqxA5fW-1 
 ![FAMUnite Semester One Presentation](documentation/FAMUnitePresentation1.gif)
 
 
