@@ -4,18 +4,20 @@
 
 FAMUnite is a two-semester Software Design & Development capstone built at Florida A&M University. It centralizes campus events, club announcements, and partner programs into one intuitive, mobile-friendly platform.
 
-### Key Contributions (Jan ’25 – May ’25)
+### Part One: System Design & Project Management (Aug ’24 – Dec ’24)
+- **Team Leadership:** Served as project manager for Phase I—coordinated a 5-person team, managed sprints, delegated tasks, and tracked progress.  
+- **UX/UI Prototyping:** Created low- and high-fidelity wireframes in Figma, conducted competitor analyses, and defined core user journeys to inform our design roadmap.  
+- **Data Modeling:** Developed Firestore collection relationship diagrams and an Entity–Relationship Diagram (ERD) to organize data schemas
+https://drive.google.com/drive/folders/1Hma0Z6MPa9T5QUwBOWmkVzvw4wwlvp0W?usp=sharing
+![FAMUnite Semester One Presentation](documentation/FAMUnitePresentation1.gif)
+
+
+### Part Two: Software Development (Jan ’25 – May ’25)
 - **Frontend Architecture:** Led React.js development with a focus on clean, reusable components, mobile responsiveness, and WCAG-aligned accessibility.  
 - **Role-Based Dashboards:** Built dynamic views that adapt to user roles (student, organizer, moderator), using conditional rendering for personalized content.  
 - **Search & Filter:** Engineered robust search and multi-criteria filtering (by date, category, organization) to surface relevant events quickly and streamline user workflows.  
 - **Real-Time Data Sync:** Integrated Firebase Firestore for secure user authentication and live updates of events, registrations, and announcements.
-https://drive.google.com/drive/folders/1Hma0Z6MPa9T5QUwBOWmkVzvw4wwlvp0W?usp=sharing
-![FAMUnite Semester One Presentation](documentation/FAMUnitePresentation1.gif)
 
-### System Design & Project Management (Aug ’24 – Dec ’24)
-- **Team Leadership:** Served as project manager for Phase I—coordinated a 5-person team, managed sprints, delegated tasks, and tracked progress.  
-- **UX/UI Prototyping:** Created low- and high-fidelity wireframes in Figma, conducted competitor analyses, and defined core user journeys to inform our design roadmap.  
-- **Data Modeling:** Developed Firestore collection relationship diagrams and an Entity–Relationship Diagram (ERD) to organize data schemas
 
 ## 🛠️ Features
 - 📅 **Event Calendar**: View all upcoming campus events in one place.
