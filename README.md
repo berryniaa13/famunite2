@@ -57,3 +57,10 @@ https://drive.google.com/drive/folders/1Hma0Z6MPa9T5QUwBOWmkVzvw4wwlvp0W?usp=sha
 - **Design**: Figma
 - **Languages**: HTML, CSS, JavaScript
 - **API Platform**: Postman
+
+## Contributors:
+Nia Berry - Frontend / UX 
+Robert Beautealus -  Backend / Frontend
+Regan Wilson - Frontend
+Tori Lucas - Frontend
+Woodhans Joseph - Backend / Frontend
