@@ -8,6 +8,7 @@ FAMUnite is a two-semester Software Design & Development capstone built at Flori
 - **Team Leadership:** Served as project manager for Phase I—coordinated a 5-person team, managed sprints, delegated tasks, and tracked progress.  
 - **UX/UI Prototyping:** Created low- and high-fidelity wireframes in Figma, conducted competitor analyses, and defined core user journeys to inform our design roadmap.  
 - **Data Modeling:** Developed Firestore collection relationship diagrams and an Entity–Relationship Diagram (ERD) to organize data schemas
+
 Google Drive: https://drive.google.com/drive/folders/1Hma0Z6MPa9T5QUwBOWmkVzvw4wwlvp0W?usp=sharing
 
 Figma: https://www.figma.com/design/3U95ByNFUXgcm75Y1Jx7XY/FAMUnite-Wireframe?node-id=0-1&t=LOL2pPk7zrcWbxhf-1 
