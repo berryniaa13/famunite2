@@ -66,7 +66,11 @@ Figma: https://www.figma.com/design/yp836TbaQK6JlmCdW6TsJB/FAMUnite?node-id=0-1&
 
 ## Contributors:
 Nia Berry - Frontend / UX 
+
 Robert Beautealus -  Backend / Frontend
+
 Regan Wilson - Frontend
+
 Tori Lucas - Frontend
+
 Woodhans Joseph - Backend / Frontend
